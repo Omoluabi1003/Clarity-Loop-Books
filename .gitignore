@@ -1,0 +1,6 @@
+# Generated book artifact
+clarity_loop.pdf
+
+# Python cache
+__pycache__/
+*.pyc
