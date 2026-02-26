@@ -2,7 +2,7 @@ from fpdf import FPDF
 from datetime import date
 
 TITLE = "Clarity Loop: A Practical Guide to Thinking, Building, and Improving"
-AUTHOR = "Generated for Clarity-Loop"
+AUTHOR = "Paul A.K. Iyogun"
 OUTPUT_FILE = "clarity_loop.pdf"
 TOTAL_CONTENT_PAGES = 160
 CHAPTERS = [
