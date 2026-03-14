@@ -66,8 +66,20 @@ def clean_inline_markdown(text: str) -> str:
 
 def parse_markdown(md_text: str) -> list[Block]:
     blocks: list[Block] = []
+    in_code_block = False
     for raw in md_text.splitlines():
         line = raw.rstrip()
+
+        if line.strip().startswith("```"):
+            in_code_block = not in_code_block
+            if not in_code_block:
+                blocks.append(Block("blank", ""))
+            continue
+
+        if in_code_block:
+            blocks.append(Block("code", sanitize_text(line)))
+            continue
+
         if not line.strip():
             blocks.append(Block("blank", ""))
             continue
@@ -169,6 +181,11 @@ def render_blocks(pdf: NovelPDF, blocks: list[Block]):
         if block.kind == "bullet":
             pdf.set_font("Helvetica", "", 11)
             mc(pdf, f"- {block.text}", h=6)
+            continue
+
+        if block.kind == "code":
+            pdf.set_font("Courier", "", 9)
+            mc(pdf, f"    {block.text}", h=5)
             continue
 
         if block.kind == "numbered":
