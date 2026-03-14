@@ -4,3 +4,8 @@ clarity_loop.pdf
 # Python cache
 __pycache__/
 *.pyc
+
+# Generated novel/cover artifacts
+clarity_loop_novel.pdf
+clarity_loop_front_cover.png
+clarity_loop_kdp_wrap.png

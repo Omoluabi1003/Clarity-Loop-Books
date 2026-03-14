@@ -33,3 +33,16 @@ python generate_novel_pdf.py
 This produces:
 
 - `clarity_loop_novel.pdf`
+
+
+## Generate cinematic front cover and KDP wrap
+
+```bash
+python -m pip install pillow
+python generate_covers.py
+```
+
+This produces:
+
+- `clarity_loop_front_cover.png` (front cover, 6x9 @ 300 DPI)
+- `clarity_loop_kdp_wrap.png` (full KDP spread including back + spine + front, with bleed for 350 pages)
