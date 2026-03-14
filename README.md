@@ -21,3 +21,15 @@ from pypdf import PdfReader
 print(len(PdfReader('clarity_loop.pdf').pages))
 PY
 ```
+
+
+## Generate the technical-novel PDF
+
+```bash
+python -m pip install fpdf2
+python generate_novel_pdf.py
+```
+
+This produces:
+
+- `clarity_loop_novel.pdf`
