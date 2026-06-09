@@ -1,49 +1,27 @@
 "use client";
 
-import { Bell, BookOpen, ChevronDown, CircleHelp, LayoutGrid, Menu, Search, Settings, Sparkles, X } from "lucide-react";
+import { BookOpenText, CircleHelp, Menu, PenLine, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { sampleBooks } from "@/lib/templates";
 import type { Book, BookForm, BookTemplate } from "@/lib/types";
-import { BookDashboard } from "./BookDashboard";
-import { BookWizard } from "./BookWizard";
+import { AuthorWorkspace } from "./AuthorWorkspace";
+import { BlueprintView } from "./BlueprintView";
 import { ChapterStudio } from "./ChapterStudio";
 import { ExportCenter } from "./ExportCenter";
-import { TemplateSelector } from "./TemplateSelector";
+import { NewBookWizard } from "./NewBookWizard";
 
+type View = "workspace" | "blueprint" | "chapters";
 export function BookStudio() {
-  const [books, setBooks] = useState<Book[]>(sampleBooks);
-  const [activeBookId, setActiveBookId] = useState<string | null>(null);
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<BookTemplate | null>(null);
-  const [exportOpen, setExportOpen] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const storageReady = useRef(false);
+  const [books, setBooks] = useState<Book[]>(sampleBooks); const [activeBookId, setActiveBookId] = useState<string | null>(null); const [view, setView] = useState<View>("workspace"); const [wizardOpen, setWizardOpen] = useState(false); const [selectedTemplate, setSelectedTemplate] = useState<BookTemplate | null>(null); const [exportOpen, setExportOpen] = useState(false); const [mobileMenu, setMobileMenu] = useState(false); const storageReady = useRef(false);
   const activeBook = books.find((book) => book.id === activeBookId);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const saved = localStorage.getItem("clarity-loop-books");
-      if (saved) {
-        try { setBooks(JSON.parse(saved)); } catch { localStorage.removeItem("clarity-loop-books"); }
-      }
-      storageReady.current = true;
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, []);
-  useEffect(() => {
-    if (storageReady.current) localStorage.setItem("clarity-loop-books", JSON.stringify(books));
-  }, [books]);
-
-  const createBook = async (form: BookForm) => {
-    const response = await fetch("/api/blueprint", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-    const data = await response.json();
-    const id = `book-${Date.now()}`;
-    const book: Book = { id, title: form.title, subtitle: form.subtitle || "A new book taking shape", genre: form.genre, audience: form.audience, tone: form.tone, writingStyle: form.writingStyle, bookLength: form.bookLength, autoMode: form.autoMode, status: "Planning", progress: 8, updatedAt: "Just now", color: "violet", chapters: data.chapters, bookDNA: { tone: form.tone, audience: form.audience, readingLevel: "Clear and conversational", voice: form.writingStyle, themes: ["growth", "clarity", "meaningful change"], styleRules: ["Use plain, welcoming language", "Include relatable examples", "End with a useful takeaway"] } };
-    setBooks((current) => [book, ...current]); setWizardOpen(false); setSelectedTemplate(null); setActiveBookId(id);
-  };
+  useEffect(() => { const timer = window.setTimeout(() => { const saved = localStorage.getItem("clarity-loop-books-v2"); if (saved) { try { setBooks(JSON.parse(saved)); } catch { localStorage.removeItem("clarity-loop-books-v2"); } } storageReady.current = true; }, 0); return () => window.clearTimeout(timer); }, []);
+  useEffect(() => { if (storageReady.current) localStorage.setItem("clarity-loop-books-v2", JSON.stringify(books)); }, [books]);
+  const openBook = (book: Book, target: "blueprint" | "chapters") => { setActiveBookId(book.id); setView(target); window.scrollTo(0, 0); };
   const openWizard = (template?: BookTemplate) => { setSelectedTemplate(template ?? null); setWizardOpen(true); };
-
-  if (activeBook) return <><ChapterStudio book={activeBook} onBack={() => setActiveBookId(null)} onChange={(next) => setBooks((current) => current.map((book) => book.id === next.id ? next : book))} onExport={() => setExportOpen(true)} />{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} />}</>;
-
-  return <div className="app-shell"><header className="main-header"><button className="brand"><span className="brand-mark"><Sparkles size={17} /></span><span>Clarity <b>Loop</b></span></button><nav className={mobileMenu ? "open" : ""}><button className="active"><LayoutGrid size={17} /> Dashboard</button><button><BookOpen size={17} /> My Books</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><Sparkles size={17} /> Templates</button><button><CircleHelp size={17} /> Help</button></nav><div className="header-tools"><button aria-label="Search"><Search size={19} /></button><button aria-label="Notifications" className="notification"><Bell size={19} /><span /></button><button className="profile"><span>MJ</span><em>Maya Johnson</em><ChevronDown size={15} /></button><button className="mobile-menu" onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><BookDashboard books={books} onOpen={setActiveBookId} onCreate={() => openWizard()} /><TemplateSelector onSelect={openWizard} /><footer><div className="brand"><span className="brand-mark"><Sparkles size={15} /></span><span>Clarity <b>Loop</b></span></div><p>Your words. Your voice. Your book.</p><button><Settings size={15} /> Studio settings</button></footer>{wizardOpen && <BookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}</div>;
+  const updateBook = (next: Book) => setBooks((current) => current.map((book) => book.id === next.id ? { ...next, updatedAt: "Updated just now" } : book));
+  const createBook = async (form: BookForm) => { const response = await fetch("/api/blueprint", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) }); if (!response.ok) throw new Error("Blueprint failed"); const data = await response.json(); const id = `book-${Date.now()}`; const book: Book = { id, title: form.title, subtitle: form.subtitle || "A new manuscript taking shape", idea: form.idea, genre: form.genre, targetAudience: form.targetAudience, tone: form.tone, writingStyle: form.writingStyle, chapterCount: form.chapterCount, targetPageCount: form.targetPageCount, chapterSizePreference: form.chapterSizePreference, aiAssistanceLevel: form.aiAssistanceLevel, status: "draft", progress: 10, updatedAt: "Created just now", color: "gold", chapters: data.chapters.map((chapter: Book["chapters"][number]) => ({ ...chapter, bookId: id })), bookDna: { promise: `Help ${form.targetAudience.toLowerCase()} understand and apply the central idea of ${form.title}.`, tone: form.tone, audience: form.targetAudience, readingLevel: "Clear and conversational", voice: form.writingStyle, themes: ["clarity", "growth", "meaningful change"], styleRules: ["Use welcoming, non-technical language", "Include relatable examples", "End with a useful takeaway"] } }; setBooks((current) => [book, ...current]); setWizardOpen(false); setSelectedTemplate(null); openBook(book, "blueprint"); };
+  const goWorkspace = () => { setView("workspace"); setActiveBookId(null); setExportOpen(false); };
+  if (activeBook && view === "blueprint") return <><BlueprintView book={activeBook} onBack={goWorkspace} onStartWriting={() => setView("chapters")} onChange={updateBook} />{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} />}</>;
+  if (activeBook && view === "chapters") return <><ChapterStudio book={activeBook} onBack={goWorkspace} onBlueprint={() => setView("blueprint")} onChange={updateBook} onExport={() => setExportOpen(true)} />{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} />}</>;
+  return <div className="app-shell"><header className="main-header page-shell"><button className="brand" onClick={goWorkspace}><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></button><nav className={mobileMenu ? "open" : ""}><button className="active"><PenLine size={16} /> Author Workspace</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><BookOpenText size={16} /> Book Templates</button><button><CircleHelp size={16} /> Help</button></nav><div className="header-action"><button className="new-book-nav" onClick={() => openWizard()}><Sparkles size={15} /> New Book</button><button className="menu-button" onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><AuthorWorkspace books={books} onOpen={openBook} onCreate={openWizard} /><footer><div className="page-shell footer-inner"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><p>Developed by <strong>ETL GIS Consulting LLC</strong></p><small>© ETL GIS Consulting LLC. All rights reserved.</small></div></footer>{wizardOpen && <NewBookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}</div>;
 }

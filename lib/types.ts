@@ -1,6 +1,10 @@
-export type ChapterStatus = "Not started" | "Ready to write" | "Draft ready" | "Needs review";
+export type ChapterStatus = "pending" | "drafted" | "edited" | "locked";
+export type BookStatus = "draft" | "in_progress" | "completed" | "exported";
+export type ChapterSizePreference = "short" | "medium" | "long" | "custom" | "auto";
+export type AIAssistanceLevel = "full" | "guided" | "assistive";
 
 export interface BookDNA {
+  promise: string;
   tone: string;
   audience: string;
   readingLevel: string;
@@ -11,43 +15,56 @@ export interface BookDNA {
 
 export interface Chapter {
   id: string;
+  bookId?: string;
   chapterNumber: number;
   title: string;
   summary: string;
-  targetWordCount: number;
+  outline: string[];
   content: string;
+  targetWordCount: number;
+  estimatedPages: number;
   status: ChapterStatus;
   locked: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Book {
   id: string;
+  userId?: string;
   title: string;
   subtitle: string;
+  idea: string;
   genre: string;
-  audience: string;
+  targetAudience: string;
   tone: string;
   writingStyle: string;
-  bookLength: string;
-  status: "Planning" | "Writing" | "Complete";
-  autoMode: boolean;
+  chapterCount: number;
+  targetPageCount: number;
+  chapterSizePreference: ChapterSizePreference;
+  aiAssistanceLevel: AIAssistanceLevel;
+  bookDna: BookDNA;
+  status: BookStatus;
   progress: number;
   updatedAt: string;
+  createdAt?: string;
   color: string;
-  bookDNA: BookDNA;
   chapters: Chapter[];
 }
 
 export interface BookForm {
   title: string;
   subtitle: string;
+  idea: string;
   genre: string;
-  audience: string;
+  targetAudience: string;
   tone: string;
   writingStyle: string;
-  bookLength: string;
   chapterCount: number;
-  autoMode: boolean;
+  targetPageCount: number;
+  chapterSizePreference: ChapterSizePreference;
+  customChapterWords: number;
+  aiAssistanceLevel: AIAssistanceLevel;
 }
 
 export interface BookTemplate {
@@ -56,11 +73,10 @@ export interface BookTemplate {
   eyebrow: string;
   description: string;
   icon: string;
-  color: string;
   genre: string;
-  audience: string;
+  targetAudience: string;
   tone: string;
   writingStyle: string;
   chapterCount: number;
-  length: string;
+  targetPageCount: number;
 }
