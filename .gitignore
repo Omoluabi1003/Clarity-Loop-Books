@@ -9,3 +9,9 @@ __pycache__/
 clarity_loop_novel.pdf
 clarity_loop_front_cover.png
 clarity_loop_kdp_wrap.png
+
+# Next.js
+node_modules/
+.next/
+.env.local
+*.tsbuildinfo
