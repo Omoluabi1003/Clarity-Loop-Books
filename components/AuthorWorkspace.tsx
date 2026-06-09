@@ -1,20 +1,73 @@
+"use client";
+
+import { motion } from "framer-motion";
 import { ArrowRight, BookMarked, FileCheck2, Plus, Sparkles } from "lucide-react";
 import type { Book, BookTemplate } from "@/lib/types";
 import { BookCard } from "./BookCard";
+import { EngineeringShowcase } from "./EngineeringShowcase";
+import { HeroBookDemo } from "./HeroBookDemo";
+import { PublishingPack } from "./PublishingPack";
 import { TemplateSelector } from "./TemplateSelector";
 
-interface Props { books: Book[]; onOpen: (book: Book, view: "blueprint" | "chapters") => void; onCreate: (template?: BookTemplate) => void }
+interface Props {
+  books: Book[];
+  onOpen: (book: Book, view: "blueprint" | "chapters") => void;
+  onCreate: (template?: BookTemplate) => void;
+}
+
 export function AuthorWorkspace({ books, onOpen, onCreate }: Props) {
   const current = books[0];
-  return <main>
-    <section className="hero page-shell">
-      <div className="hero-copy"><p className="eyebrow"><Sparkles size={14} /> YOUR AUTHOR STUDIO</p><h1>What book would you like to create today?</h1><p className="hero-lede">Bring the idea. Clarity Loop helps shape the blueprint, write each chapter in your voice, and prepare a polished manuscript.</p><div className="hero-actions"><button className="primary-button" onClick={() => onCreate()}><Plus size={18} /> Start a New Book</button>{current && <button className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={18} /> Continue Writing</button>}</div><div className="trust-line"><span><FileCheck2 size={15} /> Your work saves in this browser</span><span>•</span><span>No technical setup needed</span></div></div>
-      <div className="manuscript-visual" aria-hidden="true"><div className="paper paper-back" /><div className="paper"><span className="paper-label">WORKING MANUSCRIPT</span><h3>The Clear Way<br />Forward</h3><i /><p>CHAPTER FOUR</p><strong>Make the Smallest<br />Honest Move</strong><span className="page-number">47</span></div><div className="gold-orbit"><Sparkles size={18} /></div></div>
-    </section>
-    <section className="workflow-strip"><div className="page-shell workflow-inner"><p>From first thought to finished book</p>{["Idea", "Blueprint", "Chapters", "Manuscript", "Export"].map((step, index) => <span key={step}><b>{index + 1}</b>{step}{index < 4 && <ArrowRight size={14} />}</span>)}</div></section>
-    <section className="workspace-section page-shell"><div className="section-heading"><div><p className="eyebrow">YOUR WRITING DESK</p><h2>Continue your manuscript</h2><p>Return to the exact place your book needs you next.</p></div>{current && <button className="text-button" onClick={() => onOpen(current, "blueprint")}>Review blueprint <ArrowRight size={15} /></button>}</div><div className="books-grid">{books.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} key={book.id} />)}<button className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div></section>
-    <div className="page-shell"><TemplateSelector onSelect={onCreate} /></div>
-    <section className="publish-preview page-shell"><div className="publish-copy"><p className="eyebrow">READY WHEN YOUR BOOK IS</p><h2>From working draft to finished manuscript.</h2><p>Prepare a clean book file and the publishing copy you need for your next step.</p><div className="format-row"><span><strong>PDF</strong>Print & review</span><span><strong>DOCX</strong>Edit anywhere</span><span><strong>EPUB</strong>eBook ready</span></div></div><div className="plans-preview"><p className="eyebrow">A STUDIO THAT GROWS WITH YOU</p><div><article><small>FREE</small><strong>Begin your first book</strong><p>1 book project · Guided chapters · PDF export</p></article><article className="featured-plan"><small>PRO</small><strong>Build your author library</strong><p>Unlimited books · Book DNA · DOCX & EPUB · Advanced rewriting</p></article><article><small>PUBLISHER</small><strong>Create books together</strong><p>Team workspace · Bulk projects · White-label ready</p></article></div></div></section>
-    <section className="promise-section"><div className="page-shell promise-grid"><div><p className="eyebrow">THE CLARITY LOOP METHOD</p><h2>A book-sized dream,<br />made manageable.</h2></div><div className="promise-list"><article><b>01</b><span><strong>Shape the promise</strong><p>Clarify the reader, message, tone, and transformation before writing.</p></span></article><article><b>02</b><span><strong>Build before you draft</strong><p>Review a complete table of contents and chapter-by-chapter plan.</p></span></article><article><b>03</b><span><strong>Write one chapter at a time</strong><p>Draft, refine, and lock each chapter while your Book DNA keeps the voice consistent.</p></span></article></div></div></section>
-  </main>;
+
+  return (
+    <main>
+      <section className="studio-hero page-shell">
+        <motion.div className="studio-hero-copy" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65 }}>
+          <p className="eyebrow"><Sparkles size={14} /> FROM FIRST THOUGHT TO FINISHED BOOK</p>
+          <h1>Turn Your Idea Into a <em>Published Book.</em></h1>
+          <p className="hero-lede">Clarity Loop helps you create a blueprint, chapters, manuscript, and publishing-ready export from one guided workspace.</p>
+          <div className="hero-actions">
+            <button className="primary-button hero-primary" onClick={() => onCreate()}><Plus size={18} /> Start Your Book</button>
+            <button className="secondary-button" onClick={() => document.getElementById("book-build")?.scrollIntoView({ behavior: "smooth" })}>Watch the Book Build <ArrowRight size={16} /></button>
+          </div>
+          <div className="trust-line"><span><FileCheck2 size={15} /> Your ideas stay editable</span><i /><span>Designed for real authors, not prompt engineers</span></div>
+        </motion.div>
+        <motion.div id="book-build" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .75, delay: .12 }}>
+          <HeroBookDemo onStart={() => onCreate()} />
+        </motion.div>
+      </section>
+
+      <section className="workflow-strip">
+        <div className="page-shell workflow-inner">
+          <p>The complete publishing journey</p>
+          {['Idea', 'Blueprint', 'Chapters', 'Manuscript', 'Export'].map((step, index) => <span key={step}><b>{index + 1}</b>{step}{index < 4 && <ArrowRight size={14} />}</span>)}
+        </div>
+      </section>
+
+      <section className="workspace-section page-shell" id="workspace">
+        <div className="workspace-intro">
+          <div><p className="eyebrow">YOUR AUTHOR WORKSPACE</p><h2>What book would you like to create today?</h2><p>Begin something new or return to the manuscript already waiting for you.</p></div>
+          <div className="workspace-actions"><button className="primary-button" onClick={() => onCreate()}><Plus size={17} /> Create New Book</button>{current && <button className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={17} /> Continue Writing</button>}</div>
+        </div>
+        <div className="section-heading manuscript-heading"><div><p className="eyebrow">ON YOUR WRITING DESK</p><h3>Books in progress</h3></div>{current && <button className="text-button" onClick={() => onOpen(current, "blueprint")}>Review latest blueprint <ArrowRight size={15} /></button>}</div>
+        <div className="books-grid">{books.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} key={book.id} />)}<button className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
+      </section>
+
+      <section className="method-section">
+        <div className="page-shell method-grid">
+          <motion.div className="method-heading" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}><p className="eyebrow">THE CLARITY LOOP METHOD</p><h2>A book-sized dream,<br /><em>made manageable.</em></h2><p>Every stage gives you something clear to review, refine, and approve. You are always the author.</p></motion.div>
+          <div className="method-steps">
+            {[['01', 'Shape the promise', 'Clarify the reader, message, tone, and transformation before writing.'], ['02', 'Build before you draft', 'Review the full table of contents and chapter-by-chapter plan.'], ['03', 'Write with continuity', 'Draft one chapter at a time while Book DNA protects your voice.'], ['04', 'Prepare to publish', 'Turn the manuscript into book files and launch-ready copy.']].map(([number, title, copy], index) => <motion.article key={number} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * .08 }} viewport={{ once: true }}><b>{number}</b><span><strong>{title}</strong><p>{copy}</p></span></motion.article>)}
+          </div>
+        </div>
+      </section>
+
+      <div className="page-shell"><TemplateSelector onSelect={onCreate} /></div>
+      <EngineeringShowcase />
+      <PublishingPack onStart={() => onCreate()} />
+
+      <section className="final-cta">
+        <div className="page-shell final-cta-inner"><span className="final-ornament">CL</span><p className="eyebrow">YOUR BOOK IS WAITING</p><h2>You already have the idea.<br /><em>Now give it a spine.</em></h2><p>No complicated prompts. No scattered documents. Just one beautiful, guided path from thought to finished book.</p><button className="gold-button" onClick={() => onCreate()}>Start Your Book <ArrowRight size={16} /></button><small>Developed by ETL GIS Consulting LLC</small></div>
+      </section>
+    </main>
+  );
 }

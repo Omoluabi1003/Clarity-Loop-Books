@@ -1,5 +1,7 @@
 # Clarity Loop AI Book Studio
 
+> **Vision 2.0:** Turn an idea into a published book.
+
 **Developed by ETL GIS Consulting LLC**
 
 ## Synopsis of Project
@@ -14,11 +16,13 @@ Clarity Loop is designed for authors, coaches, pastors, consultants, speakers, c
 
 ## Product experience
 
+- An interactive homepage that visibly moves from idea to blueprint, chapter structure, manuscript, and publication-ready export
 - A manuscript-first Author Workspace instead of a generic analytics dashboard
 - A guided New Book Wizard for title, idea, reader, genre, tone, style, chapter count, chapter size, page target, and preferred AI assistance
 - An editable Book Blueprint with synopsis, Book DNA, table of contents, chapter summaries, estimated length, and reading time
 - A focused Chapter Studio with chapter navigation, writing and rewriting actions, editable manuscript content, word count, page estimate, and chapter locking
 - An Export Center with visible PDF, DOCX, and EPUB paths plus publishing assets such as book descriptions, back-cover copy, author bios, keywords, and category suggestions
+- Dedicated Book DNA, consistency, publishing pipeline, and multi-format export showcases engineered by ETL GIS Consulting LLC
 - Six starting templates: Self-Help, Christian Devotional, Memoir, Business Book, Biography, and Children’s Book
 - Browser-local project persistence for the current studio demonstration
 - Deterministic API fallbacks so the complete experience works without external credentials
