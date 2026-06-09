@@ -37,6 +37,26 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### npm proxy configuration
+
+Modern npm versions warn about `npm_config_http_proxy` because it is interpreted as the unsupported `http-proxy` npm setting. This variable is not set by the repository; it can be injected by a shell, container, or CI environment. Remove it before invoking npm:
+
+```bash
+unset npm_config_http_proxy
+npm install
+```
+
+If npm itself needs an explicit proxy setting, use the supported `proxy` key instead while retaining the standard `HTTP_PROXY` variable for other tools:
+
+```bash
+export npm_config_proxy="$HTTP_PROXY"
+unset npm_config_http_proxy
+```
+
+### Browser testing
+
+The current automated tests use Node's built-in test runner and do not require Playwright or downloaded browser binaries. Next.js lists `@playwright/test` as an optional peer dependency in its package metadata, so a Playwright reference may appear in `package-lock.json` even though Playwright is not installed by this project.
+
 `OPENAI_API_KEY` is optional in the current build. The `/api/blueprint` and `/api/chapter` routes use deterministic studio content until a production AI provider is connected.
 
 ## Quality checks
