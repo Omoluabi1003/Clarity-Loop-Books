@@ -27,7 +27,8 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
   return (
     <main>
       <section className="studio-hero page-shell">
-        <motion.div className="studio-hero-copy" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65 }}>
+        <div className="studio-hero-atmosphere" aria-hidden="true"><span /><span /><span /><i /><i /></div>
+        <motion.div className="studio-hero-copy" initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65 }}>
           <p className="eyebrow"><Sparkles size={14} /> FROM FIRST THOUGHT TO FINISHED BOOK</p>
           <h1>Turn Your Idea Into a <em>Published Book.</em></h1>
           <p className="hero-lede">Clarity Loop helps you create a blueprint, chapters, manuscript, and publishing-ready export from one guided workspace.</p>
@@ -36,8 +37,13 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
             <button className="secondary-button" onClick={() => document.getElementById("book-build")?.scrollIntoView({ behavior: "smooth" })}>Watch the Book Build <ArrowRight size={16} /></button>
           </div>
           <div className="trust-line"><span><FileCheck2 size={15} /> Your ideas stay editable</span><i /><span>Designed for real authors, not prompt engineers</span></div>
+          <div className="hero-studio-proof" aria-label="Studio capabilities">
+            <span><strong>07</strong><small>Creative paths</small></span>
+            <span><strong>01</strong><small>Connected studio</small></span>
+            <span><strong>100%</strong><small>Creator controlled</small></span>
+          </div>
         </motion.div>
-        <motion.div id="book-build" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .75, delay: .12 }}>
+        <motion.div id="book-build" initial={false} animate={{ opacity: 1, x: 0 }} transition={{ duration: .75, delay: .12 }}>
           <HeroBookDemo onStart={() => onCreate()} />
         </motion.div>
       </section>

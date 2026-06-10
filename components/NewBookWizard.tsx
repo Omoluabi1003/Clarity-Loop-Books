@@ -143,11 +143,12 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
           <span className="brand-mark">CL</span>
           <span><strong>Clarity Loop</strong><small>CREATION ATELIER</small></span>
         </button>
-        <div className="studio-path-identity"><Icon size={15} /><span>{path.shortLabel}</span><i /> <small>Private working session</small></div>
+        <div className="studio-path-identity"><Icon size={15} /><span>{path.shortLabel}</span><i /><small><b>Studio Mode</b> · Private working session</small></div>
         <button className="studio-close" onClick={onClose} aria-label="Close creation studio"><X size={20} /></button>
       </header>
 
       <div className="creation-studio-shell">
+        <div className="studio-background-motif" aria-hidden="true"><span /><span /><span /><i /></div>
         <aside className="creation-studio-aside">
           <div className={`path-motif motif-${path.motif}`} aria-hidden="true"><span /><span /><span /><Icon size={34} /></div>
           <p className="eyebrow">{path.label.toUpperCase()}</p>

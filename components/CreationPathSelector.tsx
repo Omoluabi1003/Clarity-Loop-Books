@@ -44,9 +44,11 @@ export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPa
             return (
               <motion.button
                 key={path.id}
-                className={`creation-path-card accent-${path.accent}`}
+                className={`creation-path-card premium-card path-card accent-${path.accent}`}
                 onClick={() => onSelect(path.id)}
-                initial={{ opacity: 0, y: 22 }}
+                type="button"
+                aria-label={`Enter ${path.label}: ${path.bestFor}`}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: .45, delay: index * .055 }}
                 viewport={{ once: true, margin: "-60px" }}
@@ -54,6 +56,7 @@ export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPa
               >
                 <span className="path-card-top">
                   <span className="path-icon"><Icon size={21} /></span>
+                  <span className="path-card-sigil" aria-hidden="true"><i /><i /><i /></span>
                   <small>0{index + 1}</small>
                 </span>
                 <span className="path-best-for">Best for · {path.bestFor}</span>
