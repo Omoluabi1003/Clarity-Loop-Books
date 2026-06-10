@@ -164,6 +164,8 @@ test("every creation atelier path has distinct ideation fields, copy, steps, and
   assert.equal(new Set(CREATION_PATHS.map((path) => path.stepOne.title)).size, 7);
   assert.equal(new Set(CREATION_PATHS.map((path) => path.headline)).size, 7);
   assert.ok(CREATION_PATHS.every((path) => path.stepOne.fields.length >= 5));
+  assert.ok(CREATION_PATHS.every((path) => path.stepOne.fields.every((field) => field.section)));
+  assert.ok(CREATION_PATHS.every((path) => new Set(path.stepOne.fields.map((field) => field.section)).size >= 3));
   assert.ok(CREATION_PATHS.every((path) => path.steps.length === 4 && path.preview.length === 4));
 
   const fiction = CREATION_PATHS.find((path) => path.id === "fiction_book")!;
