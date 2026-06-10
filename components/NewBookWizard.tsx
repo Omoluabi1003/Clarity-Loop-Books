@@ -18,7 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import type { AIAssistanceLevel, BookForm, BookTemplate, ChapterSizePreference, CreationPathId } from "@/lib/types";
 import { BOOK_TYPES } from "@/lib/studio-catalog";
-import { CREATION_PATH_CONFIG } from "@/lib/creation-paths";
+import { CREATION_PATH_CONFIG, type CreationFieldSection } from "@/lib/creation-paths";
 
 const baseForm: BookForm = {
   projectType: "idea", sourceText: "", sourceUrl: "", title: "", subtitle: "", authorName: "", authorBio: "", authorEmail: "", authorWebsite: "", publisherCredit: "ETL GIS Consulting LLC", idea: "", genre: "Self-Help", targetAudience: "", tone: "Encouraging and clear", writingStyle: "Practical and story-led", chapterCount: 10, targetPageCount: 180, wordsPerPage: 275, chapterSizePreference: "auto", customChapterWords: 2500, aiAssistanceLevel: "guided", coverDirection: "",
@@ -36,6 +36,14 @@ const pathIcons = {
 
 const titleFields = ["workingTitle", "title", "storyTitle", "projectTitle", "sourceTitle", "bookTitle"];
 const authorFields = ["creatorName", "authorName"];
+
+const fieldSectionDetails: { id: CreationFieldSection; label: string; description: string }[] = [
+  { id: "identity", label: "Identity", description: "Name the work and the person shaping it." },
+  { id: "origin", label: "Origin", description: "Give the studio the source material and context behind the project." },
+  { id: "creative_direction", label: "Creative direction", description: "Define the central engine, approach, and choices that will guide development." },
+  { id: "audience_promise", label: "Audience promise", description: "Clarify the experience, value, or transformation the work should deliver." },
+  { id: "output_goal", label: "Output goal", description: "Set the practical result and the reason this project needs to exist now." },
+];
 
 interface Props {
   initialTemplate?: BookTemplate | null;
@@ -136,6 +144,10 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
     step >= 3 ? `${form.tone} · ${form.writingStyle}` : "",
   ];
 
+  const stepOneSections = fieldSectionDetails
+    .map((section) => ({ ...section, fields: path.stepOne.fields.filter((field) => field.section === section.id) }))
+    .filter((section) => section.fields.length > 0);
+
   return (
     <div className={`creation-studio-overlay studio-accent-${path.accent}`} role="dialog" aria-modal="true" aria-label={`${path.label} setup studio`}>
       <header className="creation-studio-header">
@@ -177,8 +189,8 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
             <small>{step * 25}% framed</small>
           </div>
 
-          <div className="studio-workspace-grid">
-            <section className="studio-form-canvas">
+          <div className="studio-workspace studio-workspace-grid">
+            <section className="studio-stage-shell studio-form-panel studio-form-canvas">
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                   key={step}
@@ -191,24 +203,34 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
                 >
                   {step === 1 && <>
                     <div className="studio-step-heading"><p className="eyebrow">SOURCE ROOM</p><h1>{path.stepOne.title}</h1><p>{path.stepOne.subtitle}</p></div>
-                    <div className="path-field-grid">
-                      {path.stepOne.fields.map((field) => (
-                        <label className={field.span === "half" ? "field-half" : "field-full"} key={field.name}>
-                          <span>{field.label}{field.required && <b>Required</b>}</span>
-                          {field.type === "textarea" ? (
-                            <textarea value={data[field.name] || ""} onChange={(event) => updateData(field.name, event.target.value)} placeholder={field.placeholder} />
-                          ) : field.type === "file" ? (
-                            <span className={`studio-file-drop ${data[field.name] ? "has-file" : ""}`}>
-                              <input type="file" accept=".pdf,.docx,.txt,.md,.epub" onChange={(event) => updateData(field.name, event.target.files?.[0]?.name || "")} />
-                              <UploadCloud size={24} />
-                              <strong>{data[field.name] || "Choose a manuscript or drop it here"}</strong>
-                              <small>{field.hint || field.placeholder}</small>
-                            </span>
-                          ) : (
-                            <input type={field.type === "url" ? "url" : "text"} value={data[field.name] || ""} onChange={(event) => updateData(field.name, event.target.value)} placeholder={field.placeholder} />
-                          )}
-                          {field.hint && field.type !== "file" && <small>{field.hint}</small>}
-                        </label>
+                    <div className="studio-form-sections">
+                      {stepOneSections.map((section, sectionIndex) => (
+                        <section className="studio-form-section" key={section.id} aria-labelledby={`studio-section-${section.id}`}>
+                          <header className="studio-section-header">
+                            <span>0{sectionIndex + 1}</span>
+                            <div><h2 id={`studio-section-${section.id}`}>{section.label}</h2><p>{section.description}</p></div>
+                          </header>
+                          <div className="studio-field-grid path-field-grid">
+                            {section.fields.map((field) => (
+                              <label className={field.span === "half" || (!field.span && field.type === "text") ? "field-half" : "studio-field-full field-full"} key={field.name}>
+                                <span>{field.label}{field.required && <b>Required</b>}</span>
+                                {field.type === "textarea" ? (
+                                  <textarea value={data[field.name] || ""} onChange={(event) => updateData(field.name, event.target.value)} placeholder={field.placeholder} />
+                                ) : field.type === "file" ? (
+                                  <span className={`studio-file-drop ${data[field.name] ? "has-file" : ""}`}>
+                                    <input type="file" accept=".pdf,.docx,.txt,.md,.epub" onChange={(event) => updateData(field.name, event.target.files?.[0]?.name || "")} />
+                                    <UploadCloud size={24} />
+                                    <strong>{data[field.name] || "Choose a manuscript or drop it here"}</strong>
+                                    <small>{field.hint || field.placeholder}</small>
+                                  </span>
+                                ) : (
+                                  <input type={field.type === "url" ? "url" : "text"} value={data[field.name] || ""} onChange={(event) => updateData(field.name, event.target.value)} placeholder={field.placeholder} />
+                                )}
+                                {field.hint && field.type !== "file" && <small>{field.hint}</small>}
+                              </label>
+                            ))}
+                          </div>
+                        </section>
                       ))}
                     </div>
                   </>}
@@ -254,13 +276,13 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
               </AnimatePresence>
 
               {error && <motion.p className="studio-form-error" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>{error}</motion.p>}
-              <div className="studio-actions-row">
+              <div className="studio-footer-actions studio-actions-row">
                 <button className="studio-back-button" onClick={() => step === 1 ? onClose() : goTo(step - 1)}><ArrowLeft size={16} /> {step === 1 ? "Exit studio" : "Back"}</button>
                 {step < 4 ? <button className="studio-primary-button" onClick={next}>Continue to {path.steps[step]} <ArrowRight size={16} /></button> : <button className="studio-primary-button" onClick={submit} disabled={working}><Sparkles size={16} /> {working ? "Building the studio plan…" : path.output.primaryLabel}</button>}
               </div>
             </section>
 
-            <aside className="studio-live-preview">
+            <aside className="studio-preview-panel studio-live-preview">
               <div className="preview-header"><span><Sparkles size={13} /> LIVE STUDIO READ</span><small>Updates as you write</small></div>
               <div className={`preview-art preview-art-${path.motif}`} aria-hidden="true"><Icon size={25} /><span>{firstValue(data, titleFields) || path.shortLabel}</span></div>
               <div className="preview-intro"><small>CREATIVE SIGNALS</small><h3>{firstValue(data, titleFields) || "Your direction is taking shape."}</h3><p>{path.output.promise}</p></div>
