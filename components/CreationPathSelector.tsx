@@ -1,11 +1,71 @@
-import { ArrowRight, BookOpen, Clapperboard, FileSearch, Lightbulb, PackageCheck, PenTool, Presentation } from "lucide-react";
-import { CREATION_PATHS } from "@/lib/studio-catalog";
+import {
+  ArrowUpRight,
+  BookOpenText,
+  Clapperboard,
+  FileSearch,
+  Lightbulb,
+  PackageCheck,
+  PenTool,
+  Presentation,
+  Sparkles,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { CREATION_PATHS } from "@/lib/creation-paths";
 import type { CreationPathId } from "@/lib/types";
 
-const icons = [Lightbulb, BookOpen, PenTool, FileSearch, Clapperboard, PackageCheck, Presentation];
+const icons = {
+  lightbulb: Lightbulb,
+  nonfiction: BookOpenText,
+  fiction: PenTool,
+  upload: FileSearch,
+  screen: Clapperboard,
+  publishing: PackageCheck,
+  pitch: Presentation,
+};
+
 export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPathId) => void }) {
-  return <section className="creation-path-section page-shell" id="create">
-    <div className="creation-path-heading"><div><p className="eyebrow">CREATE YOUR WAY</p><h2>One studio. Seven ways to begin.</h2></div><p>Choose the outcome you need. Clarity Loop adapts the questions, intelligence, and deliverables to the work.</p></div>
-    <div className="creation-path-grid">{CREATION_PATHS.map((path, index) => { const Icon = icons[index]; return <button key={path.id} className={`creation-path-card accent-${path.accent}`} onClick={() => onSelect(path.id)}><span className="path-icon"><Icon size={20} /></span><small>0{index + 1}</small><strong>{path.label}</strong><p>{path.description}</p><em>Open workflow <ArrowRight size={14} /></em></button>; })}</div>
-  </section>;
+  return (
+    <section className="creation-path-section" id="create">
+      <div className="creation-path-ambient" aria-hidden="true" />
+      <div className="page-shell">
+        <div className="creation-path-heading">
+          <div>
+            <p className="eyebrow"><Sparkles size={13} /> THE CREATION ATELIER</p>
+            <h2>Seven distinct rooms.<br /><em>One ambitious studio.</em></h2>
+          </div>
+          <div className="creation-heading-note">
+            <span>Choose by starting point</span>
+            <p>Every room has its own questions, creative logic, and production promise—because a novel should never begin like a publishing pack.</p>
+          </div>
+        </div>
+        <div className="creation-path-grid">
+          {CREATION_PATHS.map((path, index) => {
+            const Icon = icons[path.icon];
+            return (
+              <motion.button
+                key={path.id}
+                className={`creation-path-card accent-${path.accent}`}
+                onClick={() => onSelect(path.id)}
+                initial={{ opacity: 0, y: 22 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: .45, delay: index * .055 }}
+                viewport={{ once: true, margin: "-60px" }}
+                whileHover={{ y: -7 }}
+              >
+                <span className="path-card-top">
+                  <span className="path-icon"><Icon size={21} /></span>
+                  <small>0{index + 1}</small>
+                </span>
+                <span className="path-best-for">Best for · {path.bestFor}</span>
+                <strong>{path.label}</strong>
+                <p>{path.description}</p>
+                <span className="path-output"><b>Studio output</b>{path.sampleOutput}</span>
+                <em>Enter {path.shortLabel} <ArrowUpRight size={15} /></em>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
 }

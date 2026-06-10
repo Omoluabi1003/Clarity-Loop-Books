@@ -1,14 +1,5 @@
-import type { CreationPath, ProjectType } from "./types";
-
-export const CREATION_PATHS: CreationPath[] = [
-  { id: "start_from_idea", projectType: "idea", label: "Start From an Idea", description: "Turn a title, concept, or rough idea into a complete book project.", accent: "gold" },
-  { id: "nonfiction_book", projectType: "nonfiction", label: "Write a Nonfiction Book", description: "Build an authoritative business, faith, memoir, leadership, or professional book.", accent: "navy" },
-  { id: "fiction_book", projectType: "fiction", label: "Write a Fiction Book", description: "Develop characters, world logic, plot, scenes, conflict, and a satisfying ending.", accent: "plum" },
-  { id: "upload_manuscript", projectType: "upload", label: "Upload & Improve a Manuscript", description: "Analyze, sharpen, rewrite, expand, or rebuild an existing manuscript.", accent: "sage" },
-  { id: "screen_adaptation", projectType: "screenplay", label: "Turn a Book Into a Screenplay", description: "Adapt long-form work into screen-ready story, scene, and pitch assets.", accent: "copper" },
-  { id: "publishing_pack", projectType: "publishing_pack", label: "Create a Publishing Pack", description: "Create cover, metadata, back-cover copy, categories, keywords, and exports.", accent: "blue" },
-  { id: "movie_pitch_pack", projectType: "movie_pitch_pack", label: "Create a Movie or Series Pitch Pack", description: "Generate a logline, synopsis, treatment, beat sheet, and pitch copy.", accent: "ink" },
-];
+import type { ProjectType } from "./types";
+export { CREATION_PATHS } from "./creation-paths";
 
 export const BOOK_TYPES = {
   nonfiction: ["Business & Professional Development", "Self-Help", "Memoir", "Faith & Spiritual Growth", "Leadership", "Technology & Innovation", "Education", "Health & Wellness", "Biography", "Personal Development", "Public Policy & Government", "Consulting / Thought Leadership", "Christian Living", "Spiritual Reflection", "Career Development", "Entrepreneurship", "Organizational Transformation", "Government Modernization"],
