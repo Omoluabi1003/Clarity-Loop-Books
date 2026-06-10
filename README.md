@@ -21,10 +21,10 @@ Clarity Loop is designed for authors, coaches, pastors, consultants, speakers, c
 - A guided New Book Wizard for title, idea, reader, genre, tone, style, chapter count, chapter size, page target, and preferred AI assistance
 - An editable Book Blueprint with synopsis, Book DNA, table of contents, chapter summaries, estimated length, and reading time
 - A focused Chapter Studio with chapter navigation, writing and rewriting actions, editable manuscript content, word count, page estimate, and chapter locking
-- An Export Center with visible PDF, DOCX, and EPUB paths plus publishing assets such as book descriptions, back-cover copy, author bios, keywords, and category suggestions
+- An Export Center with valid PDF and DOCX downloads plus publishing assets such as book descriptions, back-cover copy, author bios, keywords, and category suggestions
 - Dedicated Book DNA, consistency, publishing pipeline, and multi-format export showcases engineered by ETL GIS Consulting LLC
 - Six starting templates: Self-Help, Christian Devotional, Memoir, Business Book, Biography, and Children’s Book
-- Browser-local project persistence for the current studio demonstration
+- Versioned browser-local project persistence with 15-second autosave, immediate edit saves, legacy migration, export history, and beta feedback capture
 - Deterministic API fallbacks so the complete experience works without external credentials
 
 ## Run the studio
@@ -57,7 +57,7 @@ unset npm_config_http_proxy
 
 The current automated tests use Node's built-in test runner and do not require Playwright or downloaded browser binaries. Next.js lists `@playwright/test` as an optional peer dependency in its package metadata, so a Playwright reference may appear in `package-lock.json` even though Playwright is not installed by this project.
 
-`OPENAI_API_KEY` is optional in the current build. The `/api/blueprint` and `/api/chapter` routes use deterministic studio content until a production AI provider is connected.
+`OPENAI_API_KEY` is optional and is read only by server routes in the current build. The `/api/blueprint` and `/api/chapter` routes use deterministic studio content until a production AI provider is connected.
 
 ## Quality checks
 
@@ -74,7 +74,7 @@ Before a hosted release, connect the existing integration points to:
 
 1. Authentication and a persistent database using the `Book` and `Chapter` structures in `lib/types.ts`.
 2. A production AI provider in `app/api/blueprint/route.ts` and `app/api/chapter/route.ts`.
-3. Dedicated PDF, DOCX, and EPUB renderers. The current PDF path uses the browser print dialog, while DOCX and EPUB are clearly labeled preview downloads.
+3. Hosted object storage for generated PDF/DOCX artifacts and the export-history URLs. PDF and DOCX are already rendered as valid files by the server export route; EPUB remains a future format.
 4. Stripe plans for Free, Pro, and Publisher tiers.
 5. Production analytics, monitoring, content safeguards, and rate limiting.
 
@@ -90,3 +90,14 @@ python generate_covers.py
 ```
 
 © ETL GIS Consulting LLC. All rights reserved.
+
+
+## Private beta integrity architecture
+
+- `lib/book-budget.ts` enforces page-to-word budgets, the 90% manuscript gate, and the 85% chapter floor.
+- `lib/manuscript.ts` is the canonical deterministic assembly path shared by all exports.
+- `lib/export-renderers.ts` creates real multi-page PDF files and valid DOCX ZIP packages with headings and chapter page breaks.
+- `lib/quality.ts` normalizes paragraph casing and reports duplicate openings, duplicate paragraphs, broken Markdown, orphan headings, empty sections, and underdeveloped chapters.
+- `lib/persistence.ts` defines the versioned saved-state contract for books and beta feedback.
+
+Browser-local persistence is appropriate for controlled single-browser beta evaluation, but it is not a substitute for authenticated server-side storage, cross-device synchronization, backups, and conflict handling. Those remain required before public monetization.

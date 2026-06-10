@@ -1,7 +1,11 @@
-export type ChapterStatus = "pending" | "drafted" | "underdeveloped" | "expanded" | "edited" | "locked";
+export type ChapterStatus = "pending" | "drafted" | "underdeveloped" | "expanded" | "reviewed" | "locked" | "edited";
 export type BookStatus = "idea" | "blueprint" | "drafting" | "editing" | "ready_for_export" | "exported";
 export type ChapterSizePreference = "short" | "medium" | "long" | "custom" | "auto";
 export type AIAssistanceLevel = "full" | "guided" | "assistive";
+export type OpeningStyle = "scenario" | "question" | "direct_claim" | "contrast" | "observation" | "case_example" | "problem_statement";
+export type FeedbackType = "bug" | "export_issue" | "content_quality" | "feature_request" | "general";
+export type FeedbackSeverity = "low" | "medium" | "high" | "critical";
+export type ExportFormat = "pdf" | "docx" | "epub";
 
 export interface BookDNA {
   promise: string;
@@ -11,6 +15,7 @@ export interface BookDNA {
   voice: string;
   themes: string[];
   styleRules: string[];
+  thesis?: string;
 }
 
 export interface Chapter {
@@ -20,14 +25,36 @@ export interface Chapter {
   title: string;
   summary: string;
   outline: string[];
+  openingStyle: OpeningStyle;
   content: string;
   targetWordCount: number;
   actualWordCount: number;
   estimatedPages: number;
+  qualityFlags: string[];
+  qualityScore?: number;
   status: ChapterStatus;
   locked: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface ExportJob {
+  id: string;
+  bookId: string;
+  format: ExportFormat;
+  status: "pending" | "processing" | "completed" | "failed";
+  fileUrl: string;
+  errorMessage: string;
+  createdAt: string;
+}
+
+export interface BetaFeedback {
+  id: string;
+  bookId: string;
+  type: FeedbackType;
+  message: string;
+  severity: FeedbackSeverity;
+  createdAt: string;
 }
 
 export interface Book {
@@ -40,6 +67,8 @@ export interface Book {
   authorEmail?: string;
   authorWebsite?: string;
   publisherCredit?: string;
+  copyrightPage?: string;
+  closingNotes?: string;
   idea: string;
   genre: string;
   targetAudience: string;
@@ -58,6 +87,7 @@ export interface Book {
   coverDirection?: string;
   coverPrompt: string;
   coverImageUrl?: string;
+  qualityScore: number;
   status: BookStatus;
   progress: number;
   updatedAt: string;
@@ -65,6 +95,7 @@ export interface Book {
   color: string;
   chapters: Chapter[];
   versionHistory?: string[];
+  exportHistory?: ExportJob[];
 }
 
 export interface BookForm {
@@ -110,8 +141,18 @@ export interface PublishingReadiness {
   actualWords: number;
   chapterCount: number;
   completedChapters: number;
+  missingChapterNumbers: number[];
   lengthAccuracyPercent: number;
   bookDnaConsistencyScore: number;
+  qualityScore: number;
   exportReadinessStatus: "blocked" | "warning" | "ready";
   blockers: string[];
+  warnings: string[];
+}
+
+export interface SavedStudioState {
+  schemaVersion: 4;
+  books: Book[];
+  feedback: BetaFeedback[];
+  savedAt: string;
 }
