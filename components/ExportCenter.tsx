@@ -1,34 +1,20 @@
-import { AlertTriangle, Check, Download, File, FileText, LoaderCircle, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Check, Download, File, FileText, LoaderCircle, ShieldCheck, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { getPublishingReadiness } from "@/lib/book-budget";
 import type { Book, ExportFormat } from "@/lib/types";
 
 export function ExportCenter({ book, onClose, onExported }: { book: Book; onClose: () => void; onExported?: (format: ExportFormat) => void }) {
-  const [override, setOverride] = useState(false);
-  const [working, setWorking] = useState<"pdf" | "docx" | null>(null);
-  const [error, setError] = useState("");
-  const readiness = getPublishingReadiness(book);
-  const blocked = readiness.exportReadinessStatus === "blocked" && !override;
-  const download = async (format: "pdf" | "docx") => {
-    if (blocked || working) return;
-    setWorking(format); setError("");
-    try {
-      const response = await fetch("/api/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ book, format, allowIncomplete: override }) });
-      if (!response.ok) { const detail = await response.json().catch(() => ({})); throw new Error(detail.error || "Export failed."); }
-      const blob = await response.blob();
-      const disposition = response.headers.get("Content-Disposition") || "";
-      const filename = disposition.match(/filename="([^"]+)"/)?.[1] || `${book.title}.${format}`;
-      const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
-      onExported?.(format);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Export failed. Your project remains saved."); }
-    finally { setWorking(null); }
-  };
+  const [working, setWorking] = useState<"pdf" | "docx" | null>(null); const [error, setError] = useState("");
+  const readiness = getPublishingReadiness(book); const blocked = readiness.exportReadinessStatus === "blocked";
+  const download = async (format: "pdf" | "docx") => { if (blocked || working) return; setWorking(format); setError(""); try { const response = await fetch("/api/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ book, format }) }); if (!response.ok) { const detail = await response.json().catch(() => ({})); throw new Error(detail.error || "Export failed."); } const blob = await response.blob(); const disposition = response.headers.get("Content-Disposition") || ""; const filename = disposition.match(/filename="([^"]+)"/)?.[1] || `${book.title}.${format}`; const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url); onExported?.(format); } catch (reason) { setError(reason instanceof Error ? reason.message : "Export failed. Your project remains saved."); } finally { setWorking(null); } };
+  const score = Math.max(0, Math.round((readiness.cleanLengthAccuracyPercent + readiness.qualityScore + (readiness.coverStatus === "missing" ? 0 : 100) + (readiness.repetitionRisk === "low" ? 100 : readiness.repetitionRisk === "medium" ? 60 : 0)) / 4));
   return <div className="modal-backdrop"><section className="export-modal" role="dialog" aria-modal="true" aria-label="Export center">
-    <div className="export-header"><div><p className="eyebrow">EXPORT CENTER</p><h2>Prepare your complete manuscript.</h2><p>{book.title} by {book.authorName}</p></div><button aria-label="Close export center" onClick={onClose}><X /></button></div>
-    <div className="readiness-card"><div className="readiness-ring"><strong>{readiness.lengthAccuracyPercent}%</strong><small>length</small></div><div><h3>{readiness.exportReadinessStatus === "ready" ? "Your manuscript is ready to export" : "Publishing checks need attention"}</h3><p>{readiness.actualWords.toLocaleString()} of {readiness.targetWords.toLocaleString()} words · {readiness.actualEstimatedPages} of {readiness.targetPages} estimated pages · {readiness.completedChapters} of {readiness.chapterCount} chapters complete.</p><span><Check size={14} /> Quality score: {readiness.qualityScore}%</span>{[...readiness.blockers, ...readiness.warnings].map((message) => <span className="readiness-warning" key={message}><AlertTriangle size={14} /> {message}</span>)}</div></div>
-    {readiness.exportReadinessStatus === "blocked" && <label className="export-override"><input type="checkbox" checked={override} onChange={(event) => setOverride(event.target.checked)} /> Export an incomplete working draft anyway. The file will still contain the complete canonical saved manuscript.</label>}
-    {error && <p className="export-error" role="alert"><AlertTriangle size={16} /> {error}</p>}
-    <div className="export-options"><button disabled={blocked || Boolean(working)} onClick={() => download("pdf")}><span>{working === "pdf" ? <LoaderCircle className="spin" /> : <FileText />}</span><strong>Print-ready PDF</strong><small>Full manuscript, title pages, contents, and chapter breaks</small><em>Export PDF <Download size={14} /></em></button><button disabled={blocked || Boolean(working)} onClick={() => download("docx")}><span>{working === "docx" ? <LoaderCircle className="spin" /> : <File />}</span><strong>Editable DOCX</strong><small>Valid Word package with structured headings and page breaks</small><em>Export DOCX <Download size={14} /></em></button></div>
-    <div className="publishing-assets"><div><Sparkles size={19} /><span><strong>Cover direction</strong><small>{book.coverDirection || book.coverPrompt}</small></span></div></div><p className="export-note">PDF and DOCX are generated from the same deterministic manuscript assembly engine, never from the visible page preview.</p>
+    <div className="export-header"><div><p className="eyebrow">PUBLISHING CENTER</p><h2>Validate the complete book.</h2><p>{book.title} by {book.authorName}</p></div><button aria-label="Close export center" onClick={onClose}><X /></button></div>
+    <div className="readiness-card"><div className="readiness-ring"><strong>{score}%</strong><small>ready</small></div><div><h3>{blocked ? "Publishing checks need attention" : "Your book is ready to export"}</h3><p>{readiness.cleanWords.toLocaleString()} clean words of {readiness.targetWords.toLocaleString()} target · {readiness.completedChapters} of {readiness.chapterCount} chapters passed.</p><span><ShieldCheck size={14} /> Status: {readiness.readinessStatus.replaceAll("_", " ")}</span>{[...readiness.blockers, ...readiness.warnings].map((message) => <span className="readiness-warning" key={message}><AlertTriangle size={14} /> {message}</span>)}</div></div>
+    <div className="publishing-metrics"><div><small>COVER</small><strong>{readiness.coverStatus.replaceAll("_", " ")}</strong></div><div><small>CLEAN LENGTH</small><strong>{readiness.cleanLengthAccuracyPercent}%</strong></div><div><small>REPETITION RISK</small><strong>{readiness.repetitionRisk}</strong></div><div><small>PROMPT LEAKAGE</small><strong>{readiness.promptLeakageDetected ? "detected" : "clear"}</strong></div></div>
+    {blocked && <p className="export-error"><AlertTriangle size={16} /> Fatal publishing failures cannot be overridden. Repair the listed issues before exporting.</p>}{error && <p className="export-error" role="alert"><AlertTriangle size={16} /> {error}</p>}
+    <div className="cover-studio-card"><div className="cover-preview"><span className="cover-loop">◯━━◇</span><h3>{book.title}</h3><p>{book.subtitle}</p><strong>{book.authorName}</strong></div><div><p className="eyebrow">COVER STUDIO</p><h3>Designed placeholder active</h3><p>A midnight-blue, warm-gold, ivory cover with an abstract loop-to-roadmap visual will be page one of every export. Raw cover directions are never printed.</p><div className="cover-actions"><button type="button">Regenerate concept</button><label>Upload cover<input type="file" accept="image/*" disabled title="Persistent uploads are coming in beta" /></label></div></div></div>
+    <div className="export-options"><button disabled={blocked || Boolean(working)} onClick={() => download("pdf")}><span>{working === "pdf" ? <LoaderCircle className="spin" /> : <FileText />}</span><strong>Publishing PDF</strong><small>Cover, front matter, contents, part dividers, chapters, and page numbers</small><em>{readiness.pdfReady ? "Export PDF" : "Not ready"} <Download size={14} /></em></button><button disabled={blocked || Boolean(working)} onClick={() => download("docx")}><span>{working === "docx" ? <LoaderCircle className="spin" /> : <File />}</span><strong>Styled DOCX</strong><small>The same clean canonical book in an editable Word package</small><em>{readiness.docxReady ? "Export DOCX" : "Not ready"} <Download size={14} /></em></button></div>
+    <div className="publishing-assets"><div><Sparkles size={19} /><span><strong>Canonical publishing assembly</strong><small>Both formats use validated clean prose and the same designed cover identity.</small></span><Check /></div></div>
   </section></div>;
 }

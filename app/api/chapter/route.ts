@@ -4,7 +4,7 @@ import { countWords, CHAPTER_GENERATION_THRESHOLD } from "@/lib/book-budget";
 import { analyzeChapterQuality, containsPromptLeakage, normalizeParagraphCasing } from "@/lib/quality";
 import type { Book, Chapter } from "@/lib/types";
 
-interface ChapterRequest { book: Book; chapter: Chapter; action?: "write" | "rewrite" | "expand" | "shorten" }
+interface ChapterRequest { book: Book; chapter: Chapter; action?: "write" | "rewrite" | "expand" | "shorten" | "remove_repetition" | "expand_cases" | "regenerate_clean" }
 
 function removeFailedBlocks(content: string, chapter: Chapter, book: Book): string {
   const seen = new Set<string>();
@@ -22,10 +22,11 @@ export async function POST(request: Request) {
   const body = (await request.json()) as ChapterRequest;
   if (!body.chapter || !body.book?.title) return NextResponse.json({ error: "Book and chapter details are required." }, { status: 400 });
   const generationContext = buildChapterGenerationContext(body.book, body.chapter);
-  const existing = body.action === "expand" ? body.chapter.content : "";
+  const existing = body.action === "expand" || body.action === "expand_cases" ? body.chapter.content : "";
   let content = writeSampleChapter(body.book, body.chapter, existing);
   if (body.action === "shorten") content = content.split("\n\n").slice(0, Math.max(4, Math.floor(content.split("\n\n").length * 0.65))).join("\n\n");
-  if (body.action === "rewrite") content = writeSampleChapter(body.book, { ...body.chapter, content: "" });
+  if (body.action === "rewrite" || body.action === "regenerate_clean") content = writeSampleChapter(body.book, { ...body.chapter, content: "" });
+  if (body.action === "remove_repetition") content = removeFailedBlocks(body.chapter.content, body.chapter, body.book);
 
   let quality = analyzeChapterQuality({ ...body.chapter, content }, body.book.chapters.map((chapter) => chapter.id === body.chapter.id ? { ...chapter, content } : chapter));
   for (let attempt = 0; attempt < 2 && quality.flags.some((flag) => flag === "prompt_leakage" || flag.startsWith("duplicate_") || flag === "repeated_phrase"); attempt += 1) {
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
     qualityStatus: quality.status,
     leakageDetected: quality.flags.includes("prompt_leakage"),
     duplicateDetected: quality.flags.some((flag) => flag.startsWith("duplicate_") || flag === "repeated_phrase"),
-    status: completionRatio < CHAPTER_GENERATION_THRESHOLD ? "underdeveloped" : blockingQualityIssue || quality.score < 75 ? "needs_review" : body.action === "expand" ? "expanded" : "drafted",
+    status: blockingQualityIssue ? "failed_quality_review" : completionRatio < CHAPTER_GENERATION_THRESHOLD ? "underdeveloped" : body.action === "expand" || body.action === "expand_cases" ? "expanded" : "drafted",
     source: process.env.OPENAI_API_KEY ? "ai-ready-fallback" : "studio-sample",
   });
 }

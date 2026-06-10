@@ -122,7 +122,7 @@ export function BookStudio() {
       chapterCount: budget.chapterCount, targetPageCount: budget.targetPages, wordsPerPage: budget.wordsPerPage,
       targetWords: budget.targetWords, averageWordsPerChapter: budget.averageWordsPerChapter, actualWords: 0, actualEstimatedPages: 0, qualityScore: 100, exportHistory: [],
       chapterSizePreference: form.chapterSizePreference, aiAssistanceLevel: form.aiAssistanceLevel, status: "blueprint", progress: 0,
-      updatedAt: now, createdAt: now, color: "gold", coverDirection: form.coverDirection, coverPrompt: "", chapters: data.chapters.map((chapter: Book["chapters"][number]) => ({ ...chapter, bookId: id })),
+      updatedAt: now, createdAt: now, color: "gold", coverDirection: form.coverDirection, coverPrompt: "", useDesignedCover: true, exportCoverWithBook: true, chapters: data.chapters.map((chapter: Book["chapters"][number]) => ({ ...chapter, bookId: id })),
       bookDna: { thesis: form.idea, promise: `Help ${form.targetAudience.toLowerCase()} understand and apply the central idea of ${form.title}.`, tone: form.tone, audience: form.targetAudience, readingLevel: "Clear and conversational", voice: form.writingStyle, themes: ["clarity", "growth", "meaningful change"], styleRules: ["Use welcoming, non-technical language", "Include relatable examples and case studies", "End with practical implementation and a useful takeaway"] },
       versionHistory: [now],
     };
