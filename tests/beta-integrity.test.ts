@@ -152,3 +152,21 @@ test("forbidden phrase families are reported exactly, removed from clean count, 
   assert.ok(analysis.cleanWordCount < analysis.rawWordCount);
   assert.ok(getPublishingReadiness(book).blockers.some((blocker) => blocker.includes(phrase)));
 });
+
+test("every creation atelier path has distinct ideation fields, copy, steps, and preview intelligence", () => {
+  assert.equal(CREATION_PATHS.length, 7);
+  assert.equal(new Set(CREATION_PATHS.map((path) => path.stepOne.title)).size, 7);
+  assert.equal(new Set(CREATION_PATHS.map((path) => path.headline)).size, 7);
+  assert.ok(CREATION_PATHS.every((path) => path.stepOne.fields.length >= 5));
+  assert.ok(CREATION_PATHS.every((path) => path.steps.length === 4 && path.preview.length === 4));
+
+  const fiction = CREATION_PATHS.find((path) => path.id === "fiction_book")!;
+  assert.deepEqual(fiction.stepOne.fields.map((field) => field.name), ["storyTitle", "authorName", "genre", "mainCharacter", "centralConflict", "setting", "emotionalPromise"]);
+  const nonfiction = CREATION_PATHS.find((path) => path.id === "nonfiction_book")!;
+  assert.ok(["centralThesis", "readerProblem", "readerTransformation", "frameworkOrMethod"].every((name) => nonfiction.stepOne.fields.some((field) => field.name === name)));
+  const upload = CREATION_PATHS.find((path) => path.id === "upload_manuscript")!;
+  assert.ok(upload.stepOne.fields.some((field) => field.type === "file"));
+  assert.ok(upload.stepOne.fields.some((field) => field.type === "url"));
+  const pitch = CREATION_PATHS.find((path) => path.id === "movie_pitch_pack")!;
+  assert.ok(["premise", "format", "targetAudience", "whyNow"].every((name) => pitch.stepOne.fields.some((field) => field.name === name)));
+});

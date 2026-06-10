@@ -1,28 +1,276 @@
-import { ArrowLeft, ArrowRight, Check, Sparkles, X } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpenText,
+  Check,
+  CheckCircle2,
+  Clapperboard,
+  FileSearch,
+  Lightbulb,
+  PackageCheck,
+  PenTool,
+  Presentation,
+  Sparkles,
+  UploadCloud,
+  X,
+} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useMemo, useState } from "react";
 import type { AIAssistanceLevel, BookForm, BookTemplate, ChapterSizePreference, CreationPathId } from "@/lib/types";
-import { BOOK_TYPES, CREATION_PATHS } from "@/lib/studio-catalog";
+import { BOOK_TYPES } from "@/lib/studio-catalog";
+import { CREATION_PATH_CONFIG } from "@/lib/creation-paths";
 
-const baseForm: BookForm = { projectType: "idea", sourceText: "", sourceUrl: "", title: "", subtitle: "", authorName: "", authorBio: "", authorEmail: "", authorWebsite: "", publisherCredit: "ETL GIS Consulting LLC", idea: "", genre: "Self-Help", targetAudience: "", tone: "Encouraging and clear", writingStyle: "Practical and story-led", chapterCount: 10, targetPageCount: 180, wordsPerPage: 275, chapterSizePreference: "auto", customChapterWords: 2500, aiAssistanceLevel: "guided", coverDirection: "" };
-interface Props { initialTemplate?: BookTemplate | null; initialPath?: CreationPathId; onClose: () => void; onCreate: (form: BookForm) => Promise<void> }
+const baseForm: BookForm = {
+  projectType: "idea", sourceText: "", sourceUrl: "", title: "", subtitle: "", authorName: "", authorBio: "", authorEmail: "", authorWebsite: "", publisherCredit: "ETL GIS Consulting LLC", idea: "", genre: "Self-Help", targetAudience: "", tone: "Encouraging and clear", writingStyle: "Practical and story-led", chapterCount: 10, targetPageCount: 180, wordsPerPage: 275, chapterSizePreference: "auto", customChapterWords: 2500, aiAssistanceLevel: "guided", coverDirection: "",
+};
+
+const pathIcons = {
+  lightbulb: Lightbulb,
+  nonfiction: BookOpenText,
+  fiction: PenTool,
+  upload: FileSearch,
+  screen: Clapperboard,
+  publishing: PackageCheck,
+  pitch: Presentation,
+};
+
+const titleFields = ["workingTitle", "title", "storyTitle", "projectTitle", "sourceTitle", "bookTitle"];
+const authorFields = ["creatorName", "authorName"];
+
+interface Props {
+  initialTemplate?: BookTemplate | null;
+  initialPath?: CreationPathId;
+  onClose: () => void;
+  onCreate: (form: BookForm) => Promise<void>;
+}
+
+function firstValue(data: Record<string, string>, keys: string[]) {
+  return keys.map((key) => data[key]?.trim()).find(Boolean) || "";
+}
 
 export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea", onClose, onCreate }: Props) {
-  const path = CREATION_PATHS.find((item) => item.id === initialPath) || CREATION_PATHS[0];
-  const genres = path.projectType === "fiction" ? BOOK_TYPES.fiction : path.projectType === "screenplay" || path.projectType === "movie_pitch_pack" ? BOOK_TYPES.special : BOOK_TYPES.nonfiction;
-  const [step, setStep] = useState(1); const [working, setWorking] = useState(false); const [error, setError] = useState("");
-  const [form, setForm] = useState<BookForm>(() => initialTemplate ? { ...baseForm, projectType: path.projectType, genre: initialTemplate.genre, targetAudience: initialTemplate.targetAudience, tone: initialTemplate.tone, writingStyle: initialTemplate.writingStyle, chapterCount: initialTemplate.chapterCount, targetPageCount: initialTemplate.targetPageCount } : { ...baseForm, projectType: path.projectType, genre: genres[0] });
+  const path = CREATION_PATH_CONFIG[initialPath];
+  const Icon = pathIcons[path.icon];
+  const genreOptions = path.projectType === "fiction" ? BOOK_TYPES.fiction : path.projectType === "screenplay" || path.projectType === "movie_pitch_pack" ? BOOK_TYPES.special : BOOK_TYPES.nonfiction;
+  const initialData = useMemo(() => {
+    const data: Record<string, string> = {};
+    if (initialTemplate) data.genre = initialTemplate.genre;
+    return data;
+  }, [initialTemplate]);
+  const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1);
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState("");
+  const [data, setData] = useState<Record<string, string>>(initialData);
+  const [form, setForm] = useState<BookForm>(() => ({
+    ...baseForm,
+    projectType: path.projectType,
+    genre: initialTemplate?.genre || genreOptions[0],
+    targetAudience: initialTemplate?.targetAudience || "",
+    tone: initialTemplate?.tone || baseForm.tone,
+    writingStyle: initialTemplate?.writingStyle || baseForm.writingStyle,
+    chapterCount: initialTemplate?.chapterCount || baseForm.chapterCount,
+    targetPageCount: initialTemplate?.targetPageCount || baseForm.targetPageCount,
+  }));
+
   const update = <K extends keyof BookForm>(key: K, value: BookForm[K]) => setForm((current) => ({ ...current, [key]: value }));
-  const next = () => { if (step === 1 && (!form.title.trim() || !form.authorName.trim() || !form.idea.trim())) return setError("Add a working title, author name, and a few words about your book idea."); if (step === 2 && !form.targetAudience.trim()) return setError("Tell us who this book is meant to help or reach."); setError(""); setStep((value) => Math.min(4, value + 1)); };
-  const submit = async () => { setWorking(true); setError(""); try { await onCreate(form); } catch { setError("We could not build the blueprint. Please try again."); setWorking(false); } };
-  const steps = ["Book idea", "Ideal reader", "Voice & style", "Book plan"];
-  return <div className="modal-backdrop"><section className="wizard-modal" role="dialog" aria-modal="true" aria-label="Start a new book">
-    <aside className="wizard-aside"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><div><p className="eyebrow">{path.label.toUpperCase()}</p><h2>Let’s turn your source into a clear creative plan.</h2><p>Nothing needs to be perfect. You can revise every detail before writing.</p></div><ol>{steps.map((label, index) => <li className={step === index + 1 ? "active" : step > index + 1 ? "done" : ""} key={label}><span>{step > index + 1 ? <Check size={14} /> : index + 1}</span><em>{label}</em></li>)}</ol><blockquote>“Start with what matters. We’ll help shape what comes next.”</blockquote></aside>
-    <div className="wizard-content"><div className="wizard-top"><span>Step {step} of 4</span><button aria-label="Close book setup" onClick={onClose}><X /></button></div>
-      {step === 1 && <div className="wizard-form"><p className="eyebrow">{path.label.toUpperCase()}</p><h2>What are you ready to create?</h2><p>Begin with a working title and the message, story, or outcome you want to share.</p><label>Working title<input autoFocus value={form.title} onChange={(event) => update("title", event.target.value)} placeholder="e.g. The Courage to Begin" /></label><label>Author name<input required value={form.authorName} onChange={(event) => update("authorName", event.target.value)} placeholder="Name shown on the cover and title page" /></label><label>Author bio <small>Optional</small><textarea value={form.authorBio} onChange={(event) => update("authorBio", event.target.value)} placeholder="A short publishing bio" /></label><label>Subtitle <small>Optional</small><input value={form.subtitle} onChange={(event) => update("subtitle", event.target.value)} placeholder="A practical guide to moving forward" /></label><label>Your book idea<textarea value={form.idea} onChange={(event) => update("idea", event.target.value)} placeholder="Describe what the book is about, why it matters, and what you want readers to take away." /></label>{(path.projectType === "upload" || path.projectType === "screenplay" || path.projectType === "movie_pitch_pack") && <><label>Paste source manuscript or excerpt<textarea className="source-textarea" value={form.sourceText} onChange={(event) => update("sourceText", event.target.value)} placeholder="Your original stays preserved separately from every improved draft." /></label><label>Or source link <small>Website and Google Docs placeholder</small><input value={form.sourceUrl} onChange={(event) => update("sourceUrl", event.target.value)} placeholder="https://" /></label></>}</div>}
-      {step === 2 && <div className="wizard-form"><p className="eyebrow">YOUR READER</p><h2>Who is waiting for this book?</h2><p>Picture the person who most needs your message. Specific is better than broad.</p><label>My ideal reader is…<textarea autoFocus value={form.targetAudience} onChange={(event) => update("targetAudience", event.target.value)} placeholder="e.g. A busy professional who knows something needs to change, but is not sure where to begin." /></label><label>{path.projectType === "fiction" ? "Fiction genre" : path.projectType === "screenplay" ? "Adaptation format" : "Book type"}<select value={form.genre} onChange={(event) => update("genre", event.target.value)}>{genres.map((genre) => <option key={genre}>{genre}</option>)}</select></label><div className="tip-card"><Sparkles size={18} /><span><strong>Why this matters</strong>A clear reader helps every chapter feel more personal, focused, and useful.</span></div></div>}
-      {step === 3 && <div className="wizard-form"><p className="eyebrow">VOICE & STYLE</p><h2>How should your book sound?</h2><p>Choose a starting voice. Your Book DNA will carry it across every chapter.</p><div className="field-pair"><label>Tone<select value={form.tone} onChange={(event) => update("tone", event.target.value)}><option>Encouraging and clear</option><option>Warm and hopeful</option><option>Confident and authoritative</option><option>Personal and honest</option><option>Playful and kind</option></select></label><label>Writing style<select value={form.writingStyle} onChange={(event) => update("writingStyle", event.target.value)}><option>Practical and story-led</option><option>Reflective and accessible</option><option>Narrative and vivid</option><option>Insightful and example-driven</option><option>Simple and visual</option></select></label></div><label>How would you like AI to help?<div className="assistance-grid">{([['full','Do everything for me','Create the structure and draft each chapter.'],['guided','Guide me chapter by chapter','Review and approve as your book grows.'],['assistive','I’ll write; AI will improve','Use AI for editing, expansion, and polish.']] as [AIAssistanceLevel,string,string][]).map(([value,title,copy]) => <button className={form.aiAssistanceLevel === value ? "selected" : ""} onClick={() => update("aiAssistanceLevel", value)} key={value}><span>{form.aiAssistanceLevel === value && <Check size={13} />}</span><strong>{title}</strong><small>{copy}</small></button>)}</div></label></div>}
-      {step === 4 && <div className="wizard-form"><p className="eyebrow">YOUR BOOK PLAN</p><h2>Choose a comfortable starting shape.</h2><p>Clarity Loop will turn these choices into an editable blueprint and table of contents.</p><div className="field-pair"><label>Number of chapters<div className="number-control"><button onClick={() => update("chapterCount", Math.max(5, form.chapterCount - 1))}>−</button><strong>{form.chapterCount}</strong><button onClick={() => update("chapterCount", Math.min(30, form.chapterCount + 1))}>+</button></div></label><label>Target page count<input type="number" min="40" max="600" value={form.targetPageCount} onChange={(event) => update("targetPageCount", Number(event.target.value))} /></label></div><div className="field-pair"><label>Words per page<input type="number" min="250" max="300" value={form.wordsPerPage} onChange={(event) => update("wordsPerPage", Number(event.target.value))} /></label><label>Cover direction <small>Optional</small><input value={form.coverDirection} onChange={(event) => update("coverDirection", event.target.value)} placeholder="e.g. fog becoming a clear path" /></label></div><label>Chapter size<div className="size-options">{([['short','Short'],['medium','Medium'],['long','Long'],['auto','Let AI decide']] as [ChapterSizePreference,string][]).map(([value,label]) => <button className={form.chapterSizePreference === value ? "selected" : ""} onClick={() => update("chapterSizePreference", value)} key={value}>{label}</button>)}</div></label><div className="plan-summary"><span><small>Estimated manuscript</small><strong>{(form.targetPageCount * form.wordsPerPage).toLocaleString()} words</strong></span><span><small>Per chapter</small><strong>{Math.round((form.targetPageCount * form.wordsPerPage) / form.chapterCount).toLocaleString()} words</strong></span></div></div>}
-      {error && <p className="form-error">{error}</p>}<div className="wizard-actions"><button className="secondary-button" onClick={() => step === 1 ? onClose() : setStep(step - 1)}><ArrowLeft size={16} /> {step === 1 ? "Cancel" : "Back"}</button>{step < 4 ? <button className="primary-button" onClick={next}>Continue <ArrowRight size={16} /></button> : <button className="primary-button" onClick={submit} disabled={working}><Sparkles size={16} /> {working ? "Building your blueprint…" : "Create My Blueprint"}</button>}</div>
+  const updateData = (name: string, value: string) => {
+    setData((current) => ({ ...current, [name]: value }));
+    if (name === "targetAudience") setForm((current) => ({ ...current, targetAudience: value }));
+    if (name === "genre") setForm((current) => ({ ...current, genre: value }));
+    if (name === "screenTone") setForm((current) => ({ ...current, tone: value }));
+  };
+  const goTo = (nextStep: number) => { setDirection(nextStep > step ? 1 : -1); setStep(nextStep); setError(""); };
+
+  const requiredMissing = path.stepOne.fields.filter((field) => field.required && !data[field.name]?.trim());
+  const hasUploadSource = path.id !== "upload_manuscript" || Boolean(data.uploadFile?.trim() || data.sourceLink?.trim());
+
+  const next = () => {
+    if (step === 1 && (requiredMissing.length || !hasUploadSource)) {
+      const message = !hasUploadSource
+        ? "Add a manuscript file or a source link so the editorial review has material to analyze."
+        : `Complete ${requiredMissing.slice(0, 2).map((field) => field.label.toLowerCase()).join(" and ")} before continuing.`;
+      setError(message);
+      return;
+    }
+    if (step === 2 && !form.targetAudience.trim()) {
+      setError(`Add ${path.audience.label.toLowerCase()} before moving into creative direction.`);
+      return;
+    }
+    goTo(Math.min(4, step + 1));
+  };
+
+  const canonicalIdea = path.stepOne.fields
+    .filter((field) => !titleFields.includes(field.name) && !authorFields.includes(field.name) && field.name !== "subtitle" && field.name !== "uploadFile")
+    .map((field) => `${field.label}: ${data[field.name] || "Not provided"}`)
+    .join("\n\n");
+
+  const submit = async () => {
+    const title = firstValue(data, titleFields) || "Untitled project";
+    const authorName = firstValue(data, authorFields) || "Creator name needed";
+    const derived: BookForm = {
+      ...form,
+      projectType: path.projectType,
+      title,
+      subtitle: data.subtitle || "",
+      authorName,
+      idea: canonicalIdea,
+      sourceUrl: data.sourceLink || "",
+      sourceText: data.uploadFile ? `Manuscript intake file: ${data.uploadFile}\n\n${canonicalIdea}` : canonicalIdea,
+      genre: data.genre || data.adaptationFormat || data.format || data.publishingPlatform || form.genre,
+    };
+    setWorking(true);
+    setError("");
+    try {
+      await onCreate(derived);
+    } catch {
+      setError(`We could not create the ${path.output.primaryLabel.toLowerCase()}. Please try again.`);
+      setWorking(false);
+    }
+  };
+
+  const previewValues = [
+    firstValue(data, ["desiredOutcome", "centralThesis", "mainCharacter", "analysisGoal", "sourceSummary", "bookDescription", "premise"]),
+    data.targetAudience || form.targetAudience,
+    firstValue(data, ["frameworkOrMethod", "centralConflict", "screenTone", "launchGoal", "whyNow", "readerOrViewerImpact"]),
+    step >= 3 ? `${form.tone} · ${form.writingStyle}` : "",
+  ];
+
+  return (
+    <div className={`creation-studio-overlay studio-accent-${path.accent}`} role="dialog" aria-modal="true" aria-label={`${path.label} setup studio`}>
+      <header className="creation-studio-header">
+        <button className="studio-brand" onClick={onClose} aria-label="Close creation studio">
+          <span className="brand-mark">CL</span>
+          <span><strong>Clarity Loop</strong><small>CREATION ATELIER</small></span>
+        </button>
+        <div className="studio-path-identity"><Icon size={15} /><span>{path.shortLabel}</span><i /> <small>Private working session</small></div>
+        <button className="studio-close" onClick={onClose} aria-label="Close creation studio"><X size={20} /></button>
+      </header>
+
+      <div className="creation-studio-shell">
+        <aside className="creation-studio-aside">
+          <div className={`path-motif motif-${path.motif}`} aria-hidden="true"><span /><span /><span /><Icon size={34} /></div>
+          <p className="eyebrow">{path.label.toUpperCase()}</p>
+          <h2>{path.headline}</h2>
+          <p className="studio-support">{path.support}</p>
+          <ol className="studio-progress">
+            {path.steps.map((label, index) => {
+              const number = index + 1;
+              return (
+                <li className={step === number ? "active" : step > number ? "done" : ""} key={label}>
+                  <button onClick={() => number < step && goTo(number)} disabled={number > step} aria-current={step === number ? "step" : undefined}>
+                    <span>{step > number ? <Check size={13} /> : number}</span>
+                    <em><small>0{number}</small>{label}</em>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+          <blockquote><Sparkles size={14} /><span><b>Creative director’s note</b>{path.directorNote}</span></blockquote>
+        </aside>
+
+        <main className="creation-studio-main">
+          <div className="studio-stage-bar">
+            <span>Stage 0{step} <i /> {path.steps[step - 1]}</span>
+            <div><b style={{ width: `${step * 25}%` }} /></div>
+            <small>{step * 25}% framed</small>
+          </div>
+
+          <div className="studio-workspace-grid">
+            <section className="studio-form-canvas">
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div
+                  key={step}
+                  className="studio-step"
+                  custom={direction}
+                  initial={{ opacity: 0, x: direction * 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: direction * -18 }}
+                  transition={{ duration: .24, ease: "easeOut" }}
+                >
+                  {step === 1 && <>
+                    <div className="studio-step-heading"><p className="eyebrow">SOURCE ROOM</p><h1>{path.stepOne.title}</h1><p>{path.stepOne.subtitle}</p></div>
+                    <div className="path-field-grid">
+                      {path.stepOne.fields.map((field) => (
+                        <label className={field.span === "half" ? "field-half" : "field-full"} key={field.name}>
+                          <span>{field.label}{field.required && <b>Required</b>}</span>
+                          {field.type === "textarea" ? (
+                            <textarea value={data[field.name] || ""} onChange={(event) => updateData(field.name, event.target.value)} placeholder={field.placeholder} />
+                          ) : field.type === "file" ? (
+                            <span className={`studio-file-drop ${data[field.name] ? "has-file" : ""}`}>
+                              <input type="file" accept=".pdf,.docx,.txt,.md,.epub" onChange={(event) => updateData(field.name, event.target.files?.[0]?.name || "")} />
+                              <UploadCloud size={24} />
+                              <strong>{data[field.name] || "Choose a manuscript or drop it here"}</strong>
+                              <small>{field.hint || field.placeholder}</small>
+                            </span>
+                          ) : (
+                            <input type={field.type === "url" ? "url" : "text"} value={data[field.name] || ""} onChange={(event) => updateData(field.name, event.target.value)} placeholder={field.placeholder} />
+                          )}
+                          {field.hint && field.type !== "file" && <small>{field.hint}</small>}
+                        </label>
+                      ))}
+                    </div>
+                  </>}
+
+                  {step === 2 && <>
+                    <div className="studio-step-heading"><p className="eyebrow">POSITIONING ROOM</p><h1>{path.audience.title}</h1><p>{path.audience.subtitle}</p></div>
+                    <label className="studio-field"><span>{path.audience.label}<b>Required</b></span><textarea value={form.targetAudience} onChange={(event) => update("targetAudience", event.target.value)} placeholder={path.audience.placeholder} /></label>
+                    <label className="studio-field"><span>{path.audience.genreLabel}</span><select value={form.genre} onChange={(event) => update("genre", event.target.value)}>{genreOptions.map((genre) => <option key={genre}>{genre}</option>)}</select><small>{path.audience.genreHint}</small></label>
+                    <div className="intelligence-card"><Sparkles size={17} /><span><b>Positioning lens</b>Clarity Loop will use this audience definition to calibrate structure, language, examples, pacing, and the final production plan.</span></div>
+                  </>}
+
+                  {step === 3 && <>
+                    <div className="studio-step-heading"><p className="eyebrow">DIRECTION ROOM</p><h1>{path.voice.title}</h1><p>{path.voice.subtitle}</p></div>
+                    <div className="path-field-grid">
+                      <label className="studio-field field-half"><span>{path.voice.toneLabel}</span><input value={form.tone} onChange={(event) => update("tone", event.target.value)} placeholder="Describe the emotional register" /></label>
+                      <label className="studio-field field-half"><span>{path.voice.styleLabel}</span><input value={form.writingStyle} onChange={(event) => update("writingStyle", event.target.value)} placeholder="Describe the creative or editorial approach" /></label>
+                      <label className="studio-field field-full"><span>{path.voice.directionLabel}<b>Optional</b></span><textarea value={form.coverDirection} onChange={(event) => update("coverDirection", event.target.value)} placeholder={path.voice.directionPlaceholder} /></label>
+                    </div>
+                    <label className="studio-field"><span>AI collaboration level</span></label>
+                    <div className="studio-assistance-grid">
+                      {([[
+                        "full", "Studio leads", "Clarity Loop proposes the structure and fills creative gaps."], ["guided", "Co-create", "You make key decisions while the studio develops the plan."], ["assistive", "Creator leads", "The studio organizes and polishes the direction you provide."]
+                      ] as [AIAssistanceLevel, string, string][]).map(([value, label, copy]) => (
+                        <button className={form.aiAssistanceLevel === value ? "selected" : ""} onClick={() => update("aiAssistanceLevel", value)} key={value}><span>{form.aiAssistanceLevel === value && <Check size={12} />}</span><strong>{label}</strong><small>{copy}</small></button>
+                      ))}
+                    </div>
+                  </>}
+
+                  {step === 4 && <>
+                    <div className="studio-step-heading"><p className="eyebrow">PRODUCTION ROOM</p><h1>{path.output.title}</h1><p>{path.output.subtitle}</p></div>
+                    <div className="production-controls">
+                      <label><span>Number of sections / chapters</span><div className="studio-number-control"><button onClick={() => update("chapterCount", Math.max(5, form.chapterCount - 1))}>−</button><strong>{form.chapterCount}</strong><button onClick={() => update("chapterCount", Math.min(30, form.chapterCount + 1))}>+</button></div></label>
+                      <label><span>Target page count</span><input type="number" min="40" max="600" value={form.targetPageCount} onChange={(event) => update("targetPageCount", Number(event.target.value))} /></label>
+                      <label><span>Words per page</span><input type="number" min="250" max="300" value={form.wordsPerPage} onChange={(event) => update("wordsPerPage", Number(event.target.value))} /></label>
+                    </div>
+                    <label className="studio-field"><span>Production cadence</span></label>
+                    <div className="studio-size-options">
+                      {([['short', 'Concise'], ['medium', 'Standard'], ['long', 'Expansive'], ['auto', 'Studio decides']] as [ChapterSizePreference, string][]).map(([value, label]) => <button className={form.chapterSizePreference === value ? "selected" : ""} onClick={() => update("chapterSizePreference", value)} key={value}><CheckCircle2 size={14} />{label}</button>)}
+                    </div>
+                    <div className="studio-plan-summary"><span><small>Estimated manuscript</small><strong>{(form.targetPageCount * form.wordsPerPage).toLocaleString()} words</strong></span><i /><span><small>Average section</small><strong>{Math.round((form.targetPageCount * form.wordsPerPage) / form.chapterCount).toLocaleString()} words</strong></span><i /><span><small>Studio deliverable</small><strong>{path.shortLabel} blueprint</strong></span></div>
+                  </>}
+                </motion.div>
+              </AnimatePresence>
+
+              {error && <motion.p className="studio-form-error" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>{error}</motion.p>}
+              <div className="studio-actions-row">
+                <button className="studio-back-button" onClick={() => step === 1 ? onClose() : goTo(step - 1)}><ArrowLeft size={16} /> {step === 1 ? "Exit studio" : "Back"}</button>
+                {step < 4 ? <button className="studio-primary-button" onClick={next}>Continue to {path.steps[step]} <ArrowRight size={16} /></button> : <button className="studio-primary-button" onClick={submit} disabled={working}><Sparkles size={16} /> {working ? "Building the studio plan…" : path.output.primaryLabel}</button>}
+              </div>
+            </section>
+
+            <aside className="studio-live-preview">
+              <div className="preview-header"><span><Sparkles size={13} /> LIVE STUDIO READ</span><small>Updates as you write</small></div>
+              <div className={`preview-art preview-art-${path.motif}`} aria-hidden="true"><Icon size={25} /><span>{firstValue(data, titleFields) || path.shortLabel}</span></div>
+              <div className="preview-intro"><small>CREATIVE SIGNALS</small><h3>{firstValue(data, titleFields) || "Your direction is taking shape."}</h3><p>{path.output.promise}</p></div>
+              <div className="preview-modules">
+                {path.preview.map((label, index) => <article key={label}><span>0{index + 1}</span><div><small>{label}</small><p>{previewValues[index] || path.previewEmpty[index]}</p></div></article>)}
+              </div>
+              <div className="preview-confidence"><span><i style={{ width: `${Math.min(100, 18 + Object.values(data).filter(Boolean).length * 8 + (step - 1) * 14)}%` }} /></span><small>Creative brief confidence rises as details become specific.</small></div>
+            </aside>
+          </div>
+        </main>
+      </div>
     </div>
-  </section></div>;
+  );
 }
