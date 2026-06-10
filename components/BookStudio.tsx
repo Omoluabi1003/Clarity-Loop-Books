@@ -6,7 +6,7 @@ import { calculateBookBudget, recalculateBook } from "@/lib/book-budget";
 import { deleteBookFromState, LEGACY_STORAGE_KEYS, parseStudioState, serializeStudioState, STORAGE_KEY } from "@/lib/persistence";
 import { generateCoverPrompt } from "@/lib/ai";
 import { sampleBooks } from "@/lib/templates";
-import type { BetaFeedback, Book, BookForm, BookTemplate, ExportFormat } from "@/lib/types";
+import type { BetaFeedback, Book, BookForm, BookTemplate, CreationPathId, ExportFormat } from "@/lib/types";
 import { AuthorWorkspace } from "./AuthorWorkspace";
 import { BetaFeedbackPanel } from "./BetaFeedbackPanel";
 import { BlueprintView } from "./BlueprintView";
@@ -50,6 +50,7 @@ export function BookStudio() {
   const [view, setView] = useState<View>("workspace");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<BookTemplate | null>(null);
+  const [creationPath, setCreationPath] = useState<CreationPathId>("start_from_idea");
   const [exportOpen, setExportOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [lastSaved, setLastSaved] = useState("Not saved yet");
@@ -89,7 +90,8 @@ export function BookStudio() {
     setLastSaved("Saved just now");
   };
   const openBook = (book: Book, target: "blueprint" | "chapters") => { setActiveBookId(book.id); setView(target); window.scrollTo(0, 0); };
-  const openWizard = (template?: BookTemplate) => { setSelectedTemplate(template ?? null); setWizardOpen(true); };
+  const openWizard = (template?: BookTemplate) => { setCreationPath("start_from_idea"); setSelectedTemplate(template ?? null); setWizardOpen(true); };
+  const openCreationPath = (path: CreationPathId) => { setCreationPath(path); setSelectedTemplate(null); setWizardOpen(true); };
   const updateBook = (next: Book) => setBooks((current) => {
     const recalculated = recalculateBook({ ...next, updatedAt: new Date().toISOString() });
     const updated = current.map((book) => book.id === next.id ? recalculated : book);
@@ -116,7 +118,7 @@ export function BookStudio() {
     const id = `book-${Date.now()}`;
     const now = new Date().toISOString();
     const base: Book = {
-      id, title: form.title, subtitle: form.subtitle || "", authorName: form.authorName, authorBio: form.authorBio,
+      id, projectType: form.projectType || "idea", originalManuscript: form.sourceText || undefined, title: form.title, subtitle: form.subtitle || "", authorName: form.authorName, authorBio: form.authorBio,
       authorEmail: form.authorEmail, authorWebsite: form.authorWebsite, publisherCredit: form.publisherCredit,
       idea: form.idea, genre: form.genre, targetAudience: form.targetAudience, tone: form.tone, writingStyle: form.writingStyle,
       chapterCount: budget.chapterCount, targetPageCount: budget.targetPages, wordsPerPage: budget.wordsPerPage,
@@ -140,5 +142,5 @@ export function BookStudio() {
 
   if (activeBook && view === "blueprint") return <><BlueprintView book={activeBook} onBack={goWorkspace} onStartWriting={() => setView("chapters")} onChange={updateBook} onDelete={() => setBookToDelete(activeBook)} />{projectManagementOverlays}{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
   if (activeBook && view === "chapters") return <><ChapterStudio book={activeBook} lastSaved={lastSaved} onSave={() => saveNow()} onBack={goWorkspace} onBlueprint={() => setView("blueprint")} onChange={updateBook} onExport={() => setExportOpen(true)} onDelete={() => setBookToDelete(activeBook)} />{projectManagementOverlays}{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
-  return <div className="app-shell"><header className="main-header page-shell"><button className="brand" onClick={goWorkspace}><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></button><nav className={mobileMenu ? "open" : ""}><button className="active"><PenLine size={16} /> Author Workspace</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><BookOpenText size={16} /> Book Templates</button><button><CircleHelp size={16} /> Help</button></nav><div className="header-action"><button className="new-book-nav" onClick={() => openWizard()}><Sparkles size={15} /> New Book</button><button className="menu-button" onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><AuthorWorkspace books={books} onOpen={openBook} onCreate={openWizard} onDelete={setBookToDelete} /><footer><div className="page-shell footer-inner"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><p>Developed by <strong>ETL GIS Consulting LLC</strong></p><small>© ETL GIS Consulting LLC. All rights reserved.</small></div></footer><BetaFeedbackPanel books={books} onSubmit={submitFeedback} />{projectManagementOverlays}{wizardOpen && <NewBookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}</div>;
+  return <div className="app-shell"><header className="main-header page-shell"><button className="brand" onClick={goWorkspace}><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></button><nav className={mobileMenu ? "open" : ""}><button className="active"><PenLine size={16} /> Author Workspace</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><BookOpenText size={16} /> Book Templates</button><button><CircleHelp size={16} /> Help</button></nav><div className="header-action"><button className="new-book-nav" onClick={() => openWizard()}><Sparkles size={15} /> New Book</button><button className="menu-button" onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><AuthorWorkspace books={books} onOpen={openBook} onCreate={openWizard} onCreatePath={openCreationPath} onDelete={setBookToDelete} /><footer><div className="page-shell footer-inner"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><p>Developed by <strong>ETL GIS Consulting LLC</strong></p><small>© ETL GIS Consulting LLC. All rights reserved.</small></div></footer><BetaFeedbackPanel books={books} onSubmit={submitFeedback} />{projectManagementOverlays}{wizardOpen && <NewBookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} initialPath={creationPath} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}</div>;
 }
