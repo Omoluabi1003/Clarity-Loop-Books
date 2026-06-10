@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { ArrowRight, BookMarked, FileCheck2, Plus, Sparkles } from "lucide-react";
 import type { Book, BookTemplate, CreationPathId } from "@/lib/types";
+import type { UserAccount } from "@/lib/account";
+import { AccountBadge, UpgradePrompt } from "./AccountSystem";
 import { visibleBooks as getVisibleBooks } from "@/lib/persistence";
 import { BookCard } from "./BookCard";
 import { EngineeringShowcase } from "./EngineeringShowcase";
@@ -18,14 +20,19 @@ interface Props {
   onCreate: (template?: BookTemplate) => void;
   onDelete: (book: Book) => void;
   onCreatePath: (path: CreationPathId) => void;
+  user: UserAccount | null;
+  activeUserProjects: number;
+  onUpgrade: () => void;
 }
 
-export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath }: Props) {
+export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath, user, activeUserProjects, onUpgrade }: Props) {
   const visibleBooks = getVisibleBooks(books);
   const current = visibleBooks[0];
 
   return (
     <main>
+      {user && <section className="account-welcome page-shell"><div><p className="eyebrow">YOUR AUTHOR DASHBOARD</p><h2>Welcome back, {user.fullName.split(" ")[0]}</h2><p>{user.planStatus === "pending_payment" ? "Payment activation coming soon. Your workspace currently has Free Preview access." : "Your next clear step is waiting in the studio."}</p></div><div className="account-welcome-status"><AccountBadge user={user} /><span><strong>{activeUserProjects} / 1</strong> active Free Preview project</span></div></section>}
+      {user?.planStatus === "free_active" && <div className="page-shell dashboard-upgrade"><UpgradePrompt onUpgrade={onUpgrade} /></div>}
       <section className="studio-hero page-shell">
         <div className="studio-hero-atmosphere" aria-hidden="true"><span /><span /><span /><i /><i /></div>
         <motion.div className="studio-hero-copy" initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65 }}>
@@ -56,7 +63,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
       </section>
 
       <CreationPathSelector onSelect={onCreatePath} />
-      <StudioDirectory />
+      <StudioDirectory onUpgrade={onUpgrade} />
 
       <section className="workspace-section page-shell" id="workspace">
         <div className="workspace-intro">

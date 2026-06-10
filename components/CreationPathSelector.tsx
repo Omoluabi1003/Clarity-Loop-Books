@@ -4,6 +4,7 @@ import {
   Clapperboard,
   FileSearch,
   Lightbulb,
+  LockKeyhole,
   PackageCheck,
   PenTool,
   Presentation,
@@ -41,10 +42,11 @@ export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPa
         <div className="creation-path-grid">
           {CREATION_PATHS.map((path, index) => {
             const Icon = icons[path.icon];
+            const locked = path.id !== "start_from_idea";
             return (
               <motion.button
                 key={path.id}
-                className={`creation-path-card premium-card path-card accent-${path.accent}`}
+                className={`creation-path-card premium-card path-card accent-${path.accent} ${locked ? "path-locked" : ""}`}
                 onClick={() => onSelect(path.id)}
                 type="button"
                 aria-label={`Enter ${path.label}: ${path.bestFor}`}
@@ -59,7 +61,7 @@ export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPa
                   <span className="path-card-sigil" aria-hidden="true"><i /><i /><i /></span>
                   <small>0{index + 1}</small>
                 </span>
-                <span className="path-best-for">Best for · {path.bestFor}</span>
+                <span className="path-best-for">Best for · {path.bestFor}</span>{locked && <span className="path-lock-label"><LockKeyhole size={11} /> PLAN PREVIEW</span>}
                 <strong>{path.label}</strong>
                 <p>{path.description}</p>
                 <span className="path-output"><b>Studio output</b>{path.sampleOutput}</span>
