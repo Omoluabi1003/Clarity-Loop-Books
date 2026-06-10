@@ -1,3 +1,4 @@
+import { analyzeBookQuality, MAX_DUPLICATE_PARAGRAPH_RATE } from "./quality";
 import type { Book, BookForm, Chapter, PublishingReadiness } from "./types";
 
 export const DEFAULT_WORDS_PER_PAGE = 275;
@@ -27,55 +28,79 @@ export function calculateBookBudget(input: Pick<BookForm, "targetPageCount" | "c
   return { wordsPerPage, targetPages, chapterCount, targetWords, averageWordsPerChapter, chapterBudgets };
 }
 
+function findMissingChapterNumbers(book: Book): number[] {
+  const present = new Set(book.chapters.map((chapter) => chapter.chapterNumber));
+  return Array.from({ length: book.chapterCount }, (_, index) => index + 1).filter((number) => !present.has(number));
+}
+
 export function recalculateBook(book: Book): Book {
   const wordsPerPage = normalizeWordsPerPage(book.wordsPerPage);
-  const chapters = book.chapters.map((chapter) => {
+  const analyzed = analyzeBookQuality(book);
+  const chapters = analyzed.chapters.map((chapter) => {
     const actualWordCount = countWords(chapter.content);
-    const completion = chapter.targetWordCount ? actualWordCount / chapter.targetWordCount : 0;
-    const hasBlockingQualityIssue = (chapter.qualityFlags || []).some((flag) => flag === "prompt_leakage" || flag.startsWith("duplicate_") || flag === "repeated_phrase");
-    const status = chapter.locked ? "locked" : actualWordCount === 0 ? "pending" : completion < CHAPTER_GENERATION_THRESHOLD ? "underdeveloped" : hasBlockingQualityIssue || chapter.status === "needs_review" ? "needs_review" : chapter.status === "expanded" ? "expanded" : chapter.status === "reviewed" ? "reviewed" : chapter.status === "edited" ? "edited" : "drafted";
-    return { ...chapter, qualityFlags: chapter.qualityFlags || [], openingStyle: chapter.openingStyle || "observation", actualWordCount, estimatedPages: Math.ceil(actualWordCount / wordsPerPage), status } as Chapter;
+    const cleanWordCount = chapter.cleanWordCount ?? actualWordCount;
+    const completion = chapter.targetWordCount ? cleanWordCount / chapter.targetWordCount : 0;
+    const failedQuality = chapter.qualityStatus === "failed_quality_review" || chapter.qualityStatus === "prompt_leak_detected";
+    const status = chapter.locked ? "locked" : actualWordCount === 0 ? "pending" : failedQuality ? "failed_quality_review" : completion < CHAPTER_GENERATION_THRESHOLD ? "underdeveloped" : chapter.status === "expanded" ? "expanded" : chapter.status === "reviewed" ? "reviewed" : chapter.status === "edited" ? "edited" : "drafted";
+    return { ...chapter, actualWordCount, estimatedPages: Math.ceil(cleanWordCount / wordsPerPage), status } as Chapter;
   });
-  const actualWords = chapters.reduce((sum, chapter) => sum + chapter.actualWordCount, 0);
-  const actualEstimatedPages = Math.ceil(actualWords / wordsPerPage);
-  const completed = chapters.filter((chapter) => chapter.actualWordCount >= chapter.targetWordCount * CHAPTER_GENERATION_THRESHOLD).length;
-  const expected = new Set(Array.from({ length: book.chapterCount }, (_, index) => index + 1));
-  chapters.forEach((chapter) => expected.delete(chapter.chapterNumber));
-  const lengthReady = actualWords >= book.targetWords * MINIMUM_COMPLETION_THRESHOLD;
-  const allComplete = completed === book.chapterCount && expected.size === 0;
-  const qualityScore = chapters.length ? Math.round(chapters.reduce((sum, chapter) => sum + (chapter.qualityScore ?? (chapter.qualityFlags.length ? 70 : 100)), 0) / chapters.length) : 0;
-  const status = book.deletedAt || book.status === "deleted" ? "deleted" : lengthReady && allComplete && book.authorName.trim() && book.coverPrompt.trim() ? "ready_for_export" : actualWords ? "drafting" : "blueprint";
-  return { ...book, wordsPerPage, chapters, actualWords, actualEstimatedPages, qualityScore, progress: book.chapterCount ? Math.round((completed / book.chapterCount) * 100) : 0, status };
+  const actualWords = analyzed.rawWordCount;
+  const actualEstimatedPages = Math.ceil(analyzed.cleanWordCount / wordsPerPage);
+  const completed = chapters.filter((chapter) => !chapter.qualityFlags.length && chapter.actualWordCount >= chapter.targetWordCount * CHAPTER_GENERATION_THRESHOLD).length;
+  const missing = findMissingChapterNumbers({ ...book, chapters });
+  const coverExists = Boolean(book.coverImageUrl || book.useDesignedCover !== false && book.title.trim() && book.authorName.trim());
+  const ready = analyzed.cleanWordCount >= book.targetWords * MINIMUM_COMPLETION_THRESHOLD && completed === book.chapterCount && !missing.length && coverExists;
+  const status = book.deletedAt || book.status === "deleted" ? "deleted" : ready ? "ready_for_export" : actualWords ? "drafting" : "blueprint";
+  return { ...book, wordsPerPage, chapters, actualWords, actualEstimatedPages, qualityScore: analyzed.score, progress: book.chapterCount ? Math.round((completed / book.chapterCount) * 100) : 0, status };
 }
 
 export function getPublishingReadiness(book: Book): PublishingReadiness {
-  const current = recalculateBook(book);
-  const completedChapters = current.chapters.filter((chapter) => chapter.actualWordCount >= chapter.targetWordCount * CHAPTER_GENERATION_THRESHOLD).length;
-  const missingChapterNumbers = Array.from({ length: current.chapterCount }, (_, index) => index + 1).filter((number) => !current.chapters.some((chapter) => chapter.chapterNumber === number));
-  const lengthAccuracyPercent = current.targetWords ? Math.min(100, Math.round((current.actualWords / current.targetWords) * 100)) : 0;
+  const analyzed = analyzeBookQuality(book);
+  const current = recalculateBook({ ...book, chapters: analyzed.chapters });
+  const missingChapterNumbers = findMissingChapterNumbers(current);
+  const cleanLengthAccuracyPercent = current.targetWords ? Math.min(100, Math.round((analyzed.cleanWordCount / current.targetWords) * 100)) : 0;
+  const completedChapters = current.chapters.filter((chapter) => chapter.qualityFlags.length === 0 && chapter.actualWordCount >= chapter.targetWordCount * CHAPTER_GENERATION_THRESHOLD).length;
+  const coverStatus = current.coverImageUrl ? "uploaded" as const : current.useDesignedCover !== false && current.title.trim() && current.authorName.trim() ? "designed_placeholder" as const : "missing" as const;
   const blockers: string[] = [];
   const warnings: string[] = [];
   if (!current.title.trim()) blockers.push("Add a book title.");
   if (!current.authorName.trim()) blockers.push("Add the author name.");
-  if (!current.coverPrompt.trim()) blockers.push("Add a cover direction or generated cover concept.");
+  if (coverStatus === "missing") blockers.push("A designed or uploaded cover asset is required.");
   if (missingChapterNumbers.length) blockers.push(`Missing chapter number(s): ${missingChapterNumbers.join(", ")}.`);
-  if (lengthAccuracyPercent < 90) blockers.push("The manuscript is below 90% of the requested length.");
-  if (completedChapters < current.chapterCount) blockers.push(`${current.chapterCount - completedChapters} chapter(s) are incomplete or underdeveloped.`);
-  if (current.chapters.some((chapter) => chapter.qualityFlags.includes("duplicate_opening"))) blockers.push("Repeated chapter openings need repair.");
-  if (current.chapters.some((chapter) => chapter.qualityFlags.some((flag) => flag === "prompt_leakage" || flag === "duplicate_paragraph" || flag === "repeated_phrase"))) blockers.push("Prompt leakage or duplicated manuscript content must be repaired before export.");
-  if (current.chapters.some((chapter) => chapter.qualityFlags.length)) warnings.push("One or more chapters have unresolved quality flags.");
-  if (!current.authorBio.trim()) warnings.push("Author bio is optional but recommended for a professional manuscript.");
+  if (cleanLengthAccuracyPercent < 90) blockers.push("Clean manuscript word count is below 90% of the requested length.");
+  if (completedChapters < current.chapterCount) blockers.push(`${current.chapterCount - completedChapters} chapter(s) are incomplete or failed quality review.`);
+  if (analyzed.fatalFillerDetected) blockers.push("Numbered padding or prohibited filler was detected.");
+  if (analyzed.promptLeakageDetected || analyzed.scaffoldLeakageDetected) blockers.push("Prompt or scaffold leakage must be removed before export.");
+  if (analyzed.duplicateParagraphRate > MAX_DUPLICATE_PARAGRAPH_RATE) blockers.push("Duplicate paragraph rate exceeds the publishing threshold.");
+  if (analyzed.duplicateOpenings.length) blockers.push("Repeated chapter openings need repair.");
+  if (current.chapters.some((chapter) => /^(?:chapter|section)\s+\d+$/i.test(chapter.title.trim()) || /\b(?:building the practice|the way forward)\s+\d+$/i.test(chapter.title.trim()))) blockers.push("Placeholder chapter numbering must be replaced with thesis-aligned titles.");
+  if (!current.chapters.length || current.chapters.some((chapter) => !chapter.title.trim() || !chapter.summary.trim())) blockers.push("The table of contents is incomplete or not aligned to the blueprint.");
+  if (!current.subtitle.trim()) warnings.push("A subtitle is recommended for this publishing format.");
+  if (!current.authorBio.trim()) warnings.push("An author bio is recommended for the finished book.");
+  const readinessStatus = blockers.some((value) => value.includes("cover")) ? "needs_cover" : blockers.some((value) => value.includes("word count") || value.includes("incomplete")) ? "needs_expansion" : blockers.length ? "needs_content_review" : current.status === "exported" ? "exported" : "ready_for_export";
+  const repetitionRisk = analyzed.duplicateParagraphRate > MAX_DUPLICATE_PARAGRAPH_RATE ? "high" : analyzed.duplicateParagraphRate > MAX_DUPLICATE_PARAGRAPH_RATE / 2 || analyzed.duplicateOpenings.length ? "medium" : "low";
   return {
     targetPages: current.targetPageCount,
     actualEstimatedPages: current.actualEstimatedPages,
     targetWords: current.targetWords,
-    actualWords: current.actualWords,
+    actualWords: analyzed.rawWordCount,
+    rawWords: analyzed.rawWordCount,
+    cleanWords: analyzed.cleanWordCount,
+    cleanLengthAccuracyPercent,
+    duplicateParagraphRate: analyzed.duplicateParagraphRate,
+    repetitionRisk,
+    promptLeakageDetected: analyzed.promptLeakageDetected,
+    scaffoldLeakageDetected: analyzed.scaffoldLeakageDetected,
+    coverStatus,
+    pdfReady: blockers.length === 0,
+    docxReady: blockers.length === 0,
+    readinessStatus,
     chapterCount: current.chapterCount,
     completedChapters,
     missingChapterNumbers,
-    lengthAccuracyPercent,
+    lengthAccuracyPercent: cleanLengthAccuracyPercent,
     bookDnaConsistencyScore: current.bookDna?.themes?.length && current.bookDna?.styleRules?.length ? 100 : 70,
-    qualityScore: current.qualityScore,
+    qualityScore: analyzed.score,
     exportReadinessStatus: blockers.length ? "blocked" : warnings.length ? "warning" : "ready",
     blockers,
     warnings,

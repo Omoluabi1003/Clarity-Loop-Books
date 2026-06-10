@@ -50,7 +50,7 @@ test("paragraph casing and duplicate opening quality checks work", () => {
 test("canonical manuscript order is deterministic and reports missing chapters", () => {
   const book = qaBook(); book.chapters = [book.chapters[2], book.chapters[0]];
   assert.deepEqual(findMissingChapterNumbers(book), [2, 4, 5, 6, 7, 8, 9, 10]);
-  const manuscript = assembleManuscript(book); assert.deepEqual(manuscript.chapters.map((chapter) => chapter.chapterNumber), [1, 3]); assert.equal(manuscript.sections.find((section) => section.kind === "toc")?.paragraphs[0], `Chapter 1: ${book.chapters[1].title}`);
+  const manuscript = assembleManuscript(book); assert.deepEqual(manuscript.chapters.map((chapter) => chapter.chapterNumber), [1, 3]); assert.deepEqual(manuscript.sections.find((section) => section.kind === "toc")?.paragraphs.slice(0, 2), ["Part I: The Old Operating Model", `Chapter 1: ${book.chapters[1].title}`]);
 });
 
 test("PDF and DOCX render complete valid binary packages", async () => {
@@ -84,4 +84,47 @@ test("soft and permanent deletion remove drafts from Books in Progress", () => {
   const deleted = softDeleted.find((item) => item.id === book.id)!;
   assert.equal(deleted.status, "deleted"); assert.equal(deleted.deletedAt, "2026-06-10T00:00:00.000Z"); assert.deepEqual(deleted.chapters, []); assert.deepEqual(deleted.exportHistory, []);
   assert.deepEqual(deleteBookFromState([book, companion], book.id, true).map((item) => item.id), ["keep-book"]);
+});
+
+
+test("fatal padding phrases are removed from clean count and block publishing", () => {
+  const book = qaBook();
+  const filler = "Application 1 of chapter 1 tests this section’s principle. Evidence 1 frames a situation. Decision 1 names the choice. Pattern 1 records conditions. Trial 1 produces evidence. Reflection 1 chooses the next move.";
+  book.chapters[0].content = filler.repeat(40);
+  const quality = analyzeBookQuality(book);
+  const readiness = getPublishingReadiness(book);
+  assert.equal(quality.fatalFillerDetected, true);
+  assert.ok(quality.cleanWordCount < quality.rawWordCount);
+  assert.equal(readiness.exportReadinessStatus, "blocked");
+  assert.ok(readiness.blockers.some((blocker) => blocker.includes("padding")));
+});
+
+test("canonical assembly starts with a designed cover and never exports cover direction metadata", () => {
+  const book = qaBook();
+  book.chapters = book.chapters.map((chapter) => ({ ...chapter, content: writeSampleChapter(book, { ...chapter, targetWordCount: 350 }), targetWordCount: 350 }));
+  const manuscript = assembleManuscript(book);
+  assert.equal(manuscript.sections[0].kind, "cover");
+  assert.equal(manuscript.sections[0].title, book.title);
+  assert.equal(manuscript.sections.some((section) => section.title === "Cover direction"), false);
+  assert.doesNotMatch(JSON.stringify(manuscript.sections), /Midnight blue field with a warm gold clarity loop/);
+  assert.equal(manuscript.sections.filter((section) => section.kind === "part_divider").length, 4);
+});
+
+test("Clarity Loop blueprint uses the required thesis-aligned parts and chapter titles", () => {
+  const chapters = buildBlueprint(form);
+  assert.deepEqual(chapters.map((chapter) => chapter.title), [
+    "The Cost of Waiting for Certainty", "Why Modern Work Stalls", "The Limits of Linear Planning", "When Action Creates Understanding", "Kidlin’s Law and the Written Problem",
+    "Vibe Coding and Discovery Through Building", "The Four Movements of Clarity", "From Feedback to Better Decisions", "Modernization as a Way of Thinking", "Leading in the Age of Intelligent Systems",
+  ]);
+  assert.ok(chapters.every((chapter) => chapter.thesis && chapter.objective && chapter.exampleBank?.length && chapter.readerTakeaway));
+  assert.doesNotMatch(JSON.stringify(chapters.map((chapter) => chapter.outline)), /Open with a distinct|Develop the central insight|Close with a chapter summary/);
+});
+
+test("missing cover and padding failures cannot reach PDF or DOCX readiness", () => {
+  const book = qaBook(); book.useDesignedCover = false; book.coverImageUrl = undefined; book.coverPrompt = "";
+  const readiness = getPublishingReadiness(book);
+  assert.equal(readiness.coverStatus, "missing");
+  assert.equal(readiness.pdfReady, false);
+  assert.equal(readiness.docxReady, false);
+  assert.equal(readiness.readinessStatus, "needs_cover");
 });
