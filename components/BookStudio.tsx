@@ -3,17 +3,18 @@
 import { BookOpenText, CircleHelp, Menu, PenLine, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateBookBudget, recalculateBook } from "@/lib/book-budget";
+import { LEGACY_STORAGE_KEYS, parseStudioState, serializeStudioState, STORAGE_KEY } from "@/lib/persistence";
 import { generateCoverPrompt } from "@/lib/ai";
 import { sampleBooks } from "@/lib/templates";
-import type { Book, BookForm, BookTemplate } from "@/lib/types";
+import type { BetaFeedback, Book, BookForm, BookTemplate, ExportFormat } from "@/lib/types";
 import { AuthorWorkspace } from "./AuthorWorkspace";
+import { BetaFeedbackPanel } from "./BetaFeedbackPanel";
 import { BlueprintView } from "./BlueprintView";
 import { ChapterStudio } from "./ChapterStudio";
 import { ExportCenter } from "./ExportCenter";
 import { NewBookWizard } from "./NewBookWizard";
 
 type View = "workspace" | "blueprint" | "chapters";
-const STORAGE_KEY = "clarity-loop-books-v3";
 
 function hydrateBook(raw: Book): Book {
   const wordsPerPage = raw.wordsPerPage || 275;
@@ -30,6 +31,8 @@ function hydrateBook(raw: Book): Book {
     averageWordsPerChapter: raw.averageWordsPerChapter || Math.round(targetWords / chapterCount),
     actualWords: raw.actualWords || 0,
     actualEstimatedPages: raw.actualEstimatedPages || 0,
+    qualityScore: raw.qualityScore ?? 0,
+    exportHistory: raw.exportHistory || [],
     coverPrompt: raw.coverPrompt || "Professional cover concept pending review.",
     status: ["draft", "in_progress", "completed"].includes(raw.status as string) ? "drafting" : raw.status,
     chapters,
@@ -39,6 +42,7 @@ function hydrateBook(raw: Book): Book {
 
 export function BookStudio() {
   const [books, setBooks] = useState<Book[]>(() => sampleBooks.map(hydrateBook));
+  const [feedback, setFeedback] = useState<BetaFeedback[]>([]);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [view, setView] = useState<View>("workspace");
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -47,16 +51,18 @@ export function BookStudio() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [lastSaved, setLastSaved] = useState("Not saved yet");
   const booksRef = useRef(books);
+  const feedbackRef = useRef(feedback);
   const storageReady = useRef(false);
   const activeBook = useMemo(() => books.find((book) => book.id === activeBookId), [books, activeBookId]);
 
   useEffect(() => { booksRef.current = books; }, [books]);
+  useEffect(() => { feedbackRef.current = feedback; }, [feedback]);
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("clarity-loop-books-v2");
+      const saved = localStorage.getItem(STORAGE_KEY) || LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
       if (saved) {
-        try { setBooks((JSON.parse(saved) as Book[]).map(hydrateBook)); }
-        catch { localStorage.removeItem(STORAGE_KEY); }
+        try { const state = parseStudioState(saved); setBooks(state.books.map(hydrateBook)); setFeedback(state.feedback); }
+        catch { console.warn("Saved projects could not be loaded; starter data remains available."); }
       }
       storageReady.current = true;
     }, 0);
@@ -65,7 +71,7 @@ export function BookStudio() {
   useEffect(() => {
     const save = () => {
       if (!storageReady.current) return;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(booksRef.current));
+      localStorage.setItem(STORAGE_KEY, serializeStudioState(booksRef.current, feedbackRef.current));
       setLastSaved(`Autosaved ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
     };
     const interval = window.setInterval(save, 15_000);
@@ -74,7 +80,7 @@ export function BookStudio() {
   }, []);
 
   const saveNow = (nextBooks = booksRef.current) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextBooks));
+    localStorage.setItem(STORAGE_KEY, serializeStudioState(nextBooks, feedbackRef.current));
     setLastSaved("Saved just now");
   };
   const openBook = (book: Book, target: "blueprint" | "chapters") => { setActiveBookId(book.id); setView(target); window.scrollTo(0, 0); };
@@ -83,6 +89,7 @@ export function BookStudio() {
     const recalculated = recalculateBook({ ...next, updatedAt: new Date().toISOString() });
     const updated = current.map((book) => book.id === next.id ? recalculated : book);
     booksRef.current = updated;
+    if (storageReady.current) { localStorage.setItem(STORAGE_KEY, serializeStudioState(updated, feedbackRef.current)); setLastSaved("Saved just now"); }
     return updated;
   });
   const createBook = async (form: BookForm) => {
@@ -97,10 +104,10 @@ export function BookStudio() {
       authorEmail: form.authorEmail, authorWebsite: form.authorWebsite, publisherCredit: form.publisherCredit,
       idea: form.idea, genre: form.genre, targetAudience: form.targetAudience, tone: form.tone, writingStyle: form.writingStyle,
       chapterCount: budget.chapterCount, targetPageCount: budget.targetPages, wordsPerPage: budget.wordsPerPage,
-      targetWords: budget.targetWords, averageWordsPerChapter: budget.averageWordsPerChapter, actualWords: 0, actualEstimatedPages: 0,
+      targetWords: budget.targetWords, averageWordsPerChapter: budget.averageWordsPerChapter, actualWords: 0, actualEstimatedPages: 0, qualityScore: 100, exportHistory: [],
       chapterSizePreference: form.chapterSizePreference, aiAssistanceLevel: form.aiAssistanceLevel, status: "blueprint", progress: 0,
       updatedAt: now, createdAt: now, color: "gold", coverDirection: form.coverDirection, coverPrompt: "", chapters: data.chapters.map((chapter: Book["chapters"][number]) => ({ ...chapter, bookId: id })),
-      bookDna: { promise: `Help ${form.targetAudience.toLowerCase()} understand and apply the central idea of ${form.title}.`, tone: form.tone, audience: form.targetAudience, readingLevel: "Clear and conversational", voice: form.writingStyle, themes: ["clarity", "growth", "meaningful change"], styleRules: ["Use welcoming, non-technical language", "Include relatable examples and case studies", "End with practical implementation and a useful takeaway"] },
+      bookDna: { thesis: form.idea, promise: `Help ${form.targetAudience.toLowerCase()} understand and apply the central idea of ${form.title}.`, tone: form.tone, audience: form.targetAudience, readingLevel: "Clear and conversational", voice: form.writingStyle, themes: ["clarity", "growth", "meaningful change"], styleRules: ["Use welcoming, non-technical language", "Include relatable examples and case studies", "End with practical implementation and a useful takeaway"] },
       versionHistory: [now],
     };
     const book = { ...base, coverPrompt: generateCoverPrompt(base) };
@@ -110,9 +117,11 @@ export function BookStudio() {
     saveNow(next);
     setWizardOpen(false); setSelectedTemplate(null); openBook(book, "blueprint");
   };
+  const submitFeedback = (entry: BetaFeedback) => { const next = [entry, ...feedbackRef.current]; feedbackRef.current = next; setFeedback(next); localStorage.setItem(STORAGE_KEY, serializeStudioState(booksRef.current, next)); };
+  const recordExport = (format: ExportFormat) => { if (!activeBook) return; updateBook({ ...activeBook, status: "exported", exportHistory: [{ id: `export-${Date.now()}`, bookId: activeBook.id, format, status: "completed", fileUrl: "browser-download", errorMessage: "", createdAt: new Date().toISOString() }, ...(activeBook.exportHistory || [])] }); };
   const goWorkspace = () => { saveNow(); setView("workspace"); setActiveBookId(null); setExportOpen(false); };
 
-  if (activeBook && view === "blueprint") return <><BlueprintView book={activeBook} onBack={goWorkspace} onStartWriting={() => setView("chapters")} onChange={updateBook} />{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} />}</>;
-  if (activeBook && view === "chapters") return <><ChapterStudio book={activeBook} lastSaved={lastSaved} onSave={() => saveNow()} onBack={goWorkspace} onBlueprint={() => setView("blueprint")} onChange={updateBook} onExport={() => setExportOpen(true)} />{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} />}</>;
-  return <div className="app-shell"><header className="main-header page-shell"><button className="brand" onClick={goWorkspace}><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></button><nav className={mobileMenu ? "open" : ""}><button className="active"><PenLine size={16} /> Author Workspace</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><BookOpenText size={16} /> Book Templates</button><button><CircleHelp size={16} /> Help</button></nav><div className="header-action"><button className="new-book-nav" onClick={() => openWizard()}><Sparkles size={15} /> New Book</button><button className="menu-button" onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><AuthorWorkspace books={books} onOpen={openBook} onCreate={openWizard} /><footer><div className="page-shell footer-inner"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><p>Developed by <strong>ETL GIS Consulting LLC</strong></p><small>© ETL GIS Consulting LLC. All rights reserved.</small></div></footer>{wizardOpen && <NewBookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}</div>;
+  if (activeBook && view === "blueprint") return <><BlueprintView book={activeBook} onBack={goWorkspace} onStartWriting={() => setView("chapters")} onChange={updateBook} />{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
+  if (activeBook && view === "chapters") return <><ChapterStudio book={activeBook} lastSaved={lastSaved} onSave={() => saveNow()} onBack={goWorkspace} onBlueprint={() => setView("blueprint")} onChange={updateBook} onExport={() => setExportOpen(true)} />{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
+  return <div className="app-shell"><header className="main-header page-shell"><button className="brand" onClick={goWorkspace}><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></button><nav className={mobileMenu ? "open" : ""}><button className="active"><PenLine size={16} /> Author Workspace</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><BookOpenText size={16} /> Book Templates</button><button><CircleHelp size={16} /> Help</button></nav><div className="header-action"><button className="new-book-nav" onClick={() => openWizard()}><Sparkles size={15} /> New Book</button><button className="menu-button" onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><AuthorWorkspace books={books} onOpen={openBook} onCreate={openWizard} /><footer><div className="page-shell footer-inner"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><p>Developed by <strong>ETL GIS Consulting LLC</strong></p><small>© ETL GIS Consulting LLC. All rights reserved.</small></div></footer><BetaFeedbackPanel books={books} onSubmit={submitFeedback} />{wizardOpen && <NewBookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}</div>;
 }
