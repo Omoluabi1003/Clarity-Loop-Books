@@ -33,8 +33,8 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
           <h1>Turn Your Idea Into a <em>Published Book.</em></h1>
           <p className="hero-lede">Clarity Loop helps you create a blueprint, chapters, manuscript, and publishing-ready export from one guided workspace.</p>
           <div className="hero-actions">
-            <button className="primary-button hero-primary" onClick={() => onCreate()}><Plus size={18} /> Start Your Book</button>
-            <button className="secondary-button" onClick={() => document.getElementById("book-build")?.scrollIntoView({ behavior: "smooth" })}>Watch the Book Build <ArrowRight size={16} /></button>
+            <button type="button" className="primary-button hero-primary" onClick={() => onCreate()}><Plus size={18} /> Start Your Book</button>
+            <button type="button" className="secondary-button" onClick={() => document.getElementById("book-build")?.scrollIntoView({ behavior: "smooth" })}>Watch the Book Build <ArrowRight size={16} /></button>
           </div>
           <div className="trust-line"><span><FileCheck2 size={15} /> Your ideas stay editable</span><i /><span>Designed for real authors, not prompt engineers</span></div>
           <div className="hero-studio-proof" aria-label="Studio capabilities">
@@ -58,13 +58,13 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
       <CreationPathSelector onSelect={onCreatePath} />
       <StudioDirectory />
 
-      <section className="workspace-section page-shell" id="workspace">
+      <section className="workspace-section page-shell studio-dark-section" id="workspace">
         <div className="workspace-intro">
-          <div><p className="eyebrow">MY BOOKS</p><h2>What book would you like to create today?</h2><p>Begin something new or return to the manuscript already waiting for you.</p></div>
-          <div className="workspace-actions"><button className="primary-button" onClick={() => onCreate()}><Plus size={17} /> Create New Book</button>{current && <button className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={17} /> Continue Writing</button>}</div>
+          <div><p className="eyebrow studio-eyebrow">MY BOOKS</p><h2 className="studio-dark-heading">What book would you like to create today?</h2><p className="studio-dark-body">Begin something new or return to the manuscript already waiting for you.</p></div>
+          <div className="workspace-actions"><button type="button" className="primary-button" onClick={() => onCreate()}><Plus size={17} /> Create New Book</button>{current && <button type="button" className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={17} /> Continue Writing</button>}</div>
         </div>
-        <div className="section-heading manuscript-heading"><div><p className="eyebrow">ON YOUR WRITING DESK</p><h3>Books in progress</h3></div>{current && <button className="text-button" onClick={() => onOpen(current, "blueprint")}>Review latest blueprint <ArrowRight size={15} /></button>}</div>
-        <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} key={book.id} />)}<button className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
+        <div className="section-heading manuscript-heading"><div><p className="eyebrow studio-eyebrow">ON YOUR WRITING DESK</p><h3 className="studio-dark-subheading">Books in progress</h3></div>{current && <button type="button" className="text-button studio-text-button-on-dark" onClick={() => onOpen(current, "blueprint")}>Review latest blueprint <ArrowRight size={15} /></button>}</div>
+        <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} key={book.id} />)}<button type="button" className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
       </section>
 
       <section className="method-section">
@@ -81,7 +81,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
       <PublishingPack onStart={() => onCreate()} />
 
       <section className="final-cta">
-        <div className="page-shell final-cta-inner"><span className="final-ornament">CL</span><p className="eyebrow">YOUR BOOK IS WAITING</p><h2>You already have the idea.<br /><em>Now give it a spine.</em></h2><p>No complicated prompts. No scattered documents. Just one beautiful, guided path from thought to finished book.</p><button className="gold-button" onClick={() => onCreate()}>Start Your Book <ArrowRight size={16} /></button><small>Developed by ETL GIS Consulting LLC</small></div>
+        <div className="page-shell final-cta-inner"><span className="final-ornament">CL</span><p className="eyebrow">YOUR BOOK IS WAITING</p><h2>You already have the idea.<br /><em>Now give it a spine.</em></h2><p>No complicated prompts. No scattered documents. Just one beautiful, guided path from thought to finished book.</p><button type="button" className="gold-button" onClick={() => onCreate()}>Start Your Book <ArrowRight size={16} /></button><small>Developed by ETL GIS Consulting LLC</small></div>
       </section>
     </main>
   );

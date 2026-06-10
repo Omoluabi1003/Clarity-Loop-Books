@@ -108,7 +108,7 @@ export function HeroBookDemo({ onStart }: { onStart: () => void }) {
               <span className="export-seal"><BookCheck size={24} /></span>
               <small>YOUR BOOK IS READY</small>
               <h3>Publication-ready in every format.</h3>
-              <div>{["PDF", "DOCX", "EPUB"].map((format) => <button key={format}><FileText size={16} /><strong>{format}</strong><Download size={14} /></button>)}</div>
+              <div>{["PDF", "DOCX", "EPUB"].map((format) => <button key={format} type="button" disabled title="Available after your manuscript passes publishing readiness"><FileText size={16} /><strong>{format}</strong><Download size={14} /></button>)}</div>
               <button className="demo-start" onClick={onStart}>Start your own book <ChevronRight size={15} /></button>
             </motion.div>
           )}
