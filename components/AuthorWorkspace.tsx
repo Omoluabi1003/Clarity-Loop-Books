@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, BookMarked, FileCheck2, Plus, Sparkles } from "lucide-react";
 import type { Book, BookTemplate, CreationPathId } from "@/lib/types";
+import type { UserAccount } from "@/lib/auth";
 import { visibleBooks as getVisibleBooks } from "@/lib/persistence";
 import { BookCard } from "./BookCard";
 import { EngineeringShowcase } from "./EngineeringShowcase";
@@ -11,6 +12,9 @@ import { PublishingPack } from "./PublishingPack";
 import { TemplateSelector } from "./TemplateSelector";
 import { CreationPathSelector } from "./CreationPathSelector";
 import { StudioDirectory } from "./StudioDirectory";
+import { AccountBadge } from "./account/AccountBadge";
+import { UpgradePrompt } from "./account/UpgradePrompt";
+import { PlanPreview } from "./PlanPreview";
 
 interface Props {
   books: Book[];
@@ -18,9 +22,12 @@ interface Props {
   onCreate: (template?: BookTemplate) => void;
   onDelete: (book: Book) => void;
   onCreatePath: (path: CreationPathId) => void;
+  account: UserAccount | null;
+  onViewPlans: () => void;
+  activeProjectCount: number;
 }
 
-export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath }: Props) {
+export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath, account, onViewPlans, activeProjectCount }: Props) {
   const visibleBooks = getVisibleBooks(books);
   const current = visibleBooks[0];
 
@@ -55,17 +62,21 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
         </div>
       </section>
 
-      <CreationPathSelector onSelect={onCreatePath} />
-      <StudioDirectory />
+      {account && <section className="dashboard-welcome page-shell"><div><p className="eyebrow">YOUR CREATOR DASHBOARD</p><h2>Welcome back, {account.fullName.split(" ")[0]}</h2><p>Your ideas, manuscripts, and publishing assets live in one connected studio.</p></div><div className="dashboard-plan"><AccountBadge account={account} /><strong>{activeProjectCount} / {account.selectedPlan === "free_preview" || account.planStatus === "pending_payment" ? "1" : "∞"}</strong><small>active projects</small></div></section>}
+      {account && (account.selectedPlan === "free_preview" || account.planStatus === "pending_payment") && <div className="page-shell dashboard-upgrade"><UpgradePrompt onViewPlans={onViewPlans} message={account.planStatus === "pending_payment" ? "Payment activation coming soon. Until then, your workspace uses Free Preview access." : "Free Preview includes 1 active project. Upgrade activation is coming soon."} /></div>}
+      <CreationPathSelector onSelect={onCreatePath} isLocked={(path) => Boolean(account && path !== "start_from_idea")} />
+      <StudioDirectory locked={!account || account.selectedPlan === "free_preview" || account.planStatus === "pending_payment"} onUpgrade={onViewPlans} />
 
-      <section className="workspace-section page-shell" id="workspace">
+      {account && <section className="workspace-section page-shell" id="workspace">
         <div className="workspace-intro">
           <div><p className="eyebrow">MY BOOKS</p><h2>What book would you like to create today?</h2><p>Begin something new or return to the manuscript already waiting for you.</p></div>
           <div className="workspace-actions"><button className="primary-button" onClick={() => onCreate()}><Plus size={17} /> Create New Book</button>{current && <button className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={17} /> Continue Writing</button>}</div>
         </div>
         <div className="section-heading manuscript-heading"><div><p className="eyebrow">ON YOUR WRITING DESK</p><h3>Books in progress</h3></div>{current && <button className="text-button" onClick={() => onOpen(current, "blueprint")}>Review latest blueprint <ArrowRight size={15} /></button>}</div>
         <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} key={book.id} />)}<button className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
-      </section>
+      </section>}
+
+      {!account && <PlanPreview onChoose={onViewPlans} />}
 
       <section className="method-section">
         <div className="page-shell method-grid">

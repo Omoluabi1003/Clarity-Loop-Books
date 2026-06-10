@@ -8,6 +8,7 @@ import {
   PenTool,
   Presentation,
   Sparkles,
+  LockKeyhole,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { CREATION_PATHS } from "@/lib/creation-paths";
@@ -23,7 +24,7 @@ const icons = {
   pitch: Presentation,
 };
 
-export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPathId) => void }) {
+export function CreationPathSelector({ onSelect, isLocked = () => false }: { onSelect: (path: CreationPathId) => void; isLocked?: (path: CreationPathId) => boolean }) {
   return (
     <section className="creation-path-section" id="create">
       <div className="creation-path-ambient" aria-hidden="true" />
@@ -41,10 +42,11 @@ export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPa
         <div className="creation-path-grid">
           {CREATION_PATHS.map((path, index) => {
             const Icon = icons[path.icon];
+            const locked = isLocked(path.id);
             return (
               <motion.button
                 key={path.id}
-                className={`creation-path-card premium-card path-card accent-${path.accent}`}
+                className={`creation-path-card premium-card path-card accent-${path.accent} ${locked ? "path-locked" : ""}`}
                 onClick={() => onSelect(path.id)}
                 type="button"
                 aria-label={`Enter ${path.label}: ${path.bestFor}`}
@@ -57,13 +59,13 @@ export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPa
                 <span className="path-card-top">
                   <span className="path-icon"><Icon size={21} /></span>
                   <span className="path-card-sigil" aria-hidden="true"><i /><i /><i /></span>
-                  <small>0{index + 1}</small>
+                  <small>{locked && <LockKeyhole size={12} />}0{index + 1}</small>
                 </span>
                 <span className="path-best-for">Best for · {path.bestFor}</span>
                 <strong>{path.label}</strong>
                 <p>{path.description}</p>
                 <span className="path-output"><b>Studio output</b>{path.sampleOutput}</span>
-                <em>Enter {path.shortLabel} <ArrowUpRight size={15} /></em>
+                <em>{locked ? "Preview locked workflow" : `Enter ${path.shortLabel}`} {locked ? <LockKeyhole size={14} /> : <ArrowUpRight size={15} />}</em>
               </motion.button>
             );
           })}

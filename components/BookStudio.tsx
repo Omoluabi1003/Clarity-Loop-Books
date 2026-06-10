@@ -1,9 +1,9 @@
 "use client";
 
-import { BookOpenText, CircleHelp, Menu, PenLine, Sparkles, X } from "lucide-react";
+import { BookOpenText, CircleHelp, LogIn, Menu, PenLine, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateBookBudget, recalculateBook } from "@/lib/book-budget";
-import { deleteBookFromState, LEGACY_STORAGE_KEYS, parseStudioState, serializeStudioState, STORAGE_KEY } from "@/lib/persistence";
+import { deleteBookFromState, LEGACY_STORAGE_KEYS, parseStudioState, serializeStudioState, STORAGE_KEY, visibleBooks } from "@/lib/persistence";
 import { generateCoverPrompt } from "@/lib/ai";
 import { sampleBooks } from "@/lib/templates";
 import type { BetaFeedback, Book, BookForm, BookTemplate, CreationPathId, ExportFormat } from "@/lib/types";
@@ -14,8 +14,17 @@ import { ChapterStudio } from "./ChapterStudio";
 import { ExportCenter } from "./ExportCenter";
 import { NewBookWizard } from "./NewBookWizard";
 import { DeleteDraftModal } from "./DeleteDraftModal";
+import { useAuth } from "./account/AuthProvider";
+import { AuthShell } from "./account/AuthShell";
+import { SignUpForm } from "./account/SignUpForm";
+import { SignInForm } from "./account/SignInForm";
+import { ForgotPasswordPlaceholder } from "./account/ForgotPasswordPlaceholder";
+import { PlanSelection } from "./account/PlanSelection";
+import { AccountPage } from "./account/AccountPage";
+import { UserMenu } from "./account/UserMenu";
 
 type View = "workspace" | "blueprint" | "chapters";
+type AccountPanel = "sign-up" | "sign-in" | "forgot" | "plans" | "account" | null;
 
 function hydrateBook(raw: Book): Book {
   const wordsPerPage = raw.wordsPerPage || 275;
@@ -44,6 +53,9 @@ function hydrateBook(raw: Book): Book {
 }
 
 export function BookStudio() {
+  const { account, ready: authReady, signOut } = useAuth();
+  const [accountPanel, setAccountPanel] = useState<AccountPanel>(null);
+  const [gateMessage, setGateMessage] = useState("");
   const [books, setBooks] = useState<Book[]>(() => sampleBooks.map(hydrateBook));
   const [feedback, setFeedback] = useState<BetaFeedback[]>([]);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
@@ -60,6 +72,10 @@ export function BookStudio() {
   const feedbackRef = useRef(feedback);
   const storageReady = useRef(false);
   const activeBook = useMemo(() => books.find((book) => book.id === activeBookId), [books, activeBookId]);
+  const accountBooks = useMemo(() => account ? books.filter((book) => book.userId === account.id) : [], [account, books]);
+  const activeProjectCount = useMemo(() => visibleBooks(accountBooks).length, [accountBooks]);
+  const previewAccess = !account || account.planStatus !== "free_active" || account.selectedPlan === "free_preview";
+  const showGate = (message: string) => { setGateMessage(message); window.setTimeout(() => setGateMessage(""), 6000); };
 
   useEffect(() => { booksRef.current = books; }, [books]);
   useEffect(() => { feedbackRef.current = feedback; }, [feedback]);
@@ -90,8 +106,18 @@ export function BookStudio() {
     setLastSaved("Saved just now");
   };
   const openBook = (book: Book, target: "blueprint" | "chapters") => { setActiveBookId(book.id); setView(target); window.scrollTo(0, 0); };
-  const openWizard = (template?: BookTemplate) => { setCreationPath("start_from_idea"); setSelectedTemplate(template ?? null); setWizardOpen(true); };
-  const openCreationPath = (path: CreationPathId) => { setCreationPath(path); setSelectedTemplate(null); setWizardOpen(true); };
+  const openWizard = (template?: BookTemplate) => {
+    if (!account) { setAccountPanel("sign-up"); return; }
+    if (account.planStatus === "inactive") { setAccountPanel("plans"); return; }
+    if (activeProjectCount >= 1 && previewAccess) { showGate("Free Preview includes 1 active project. Upgrade activation is coming soon."); return; }
+    setCreationPath("start_from_idea"); setSelectedTemplate(template ?? null); setWizardOpen(true);
+  };
+  const openCreationPath = (path: CreationPathId) => {
+    if (!account) { setAccountPanel("sign-up"); return; }
+    if (path !== "start_from_idea" && previewAccess) { showGate("This module is part of Author Pro or Studio. Stripe activation is coming soon."); return; }
+    if (activeProjectCount >= 1 && previewAccess) { showGate("Free Preview includes 1 active project. Upgrade activation is coming soon."); return; }
+    setCreationPath(path); setSelectedTemplate(null); setWizardOpen(true);
+  };
   const updateBook = (next: Book) => setBooks((current) => {
     const recalculated = recalculateBook({ ...next, updatedAt: new Date().toISOString() });
     const updated = current.map((book) => book.id === next.id ? recalculated : book);
@@ -118,7 +144,7 @@ export function BookStudio() {
     const id = `book-${Date.now()}`;
     const now = new Date().toISOString();
     const base: Book = {
-      id, projectType: form.projectType || "idea", originalManuscript: form.sourceText || undefined, title: form.title, subtitle: form.subtitle || "", authorName: form.authorName, authorBio: form.authorBio,
+      id, userId: account?.id, projectType: form.projectType || "idea", originalManuscript: form.sourceText || undefined, title: form.title, subtitle: form.subtitle || "", authorName: form.authorName, authorBio: form.authorBio,
       authorEmail: form.authorEmail, authorWebsite: form.authorWebsite, publisherCredit: form.publisherCredit,
       idea: form.idea, genre: form.genre, targetAudience: form.targetAudience, tone: form.tone, writingStyle: form.writingStyle,
       chapterCount: budget.chapterCount, targetPageCount: budget.targetPages, wordsPerPage: budget.wordsPerPage,
@@ -137,10 +163,12 @@ export function BookStudio() {
   };
   const submitFeedback = (entry: BetaFeedback) => { const next = [entry, ...feedbackRef.current]; feedbackRef.current = next; setFeedback(next); localStorage.setItem(STORAGE_KEY, serializeStudioState(booksRef.current, next)); };
   const recordExport = (format: ExportFormat) => { if (!activeBook) return; updateBook({ ...activeBook, status: "exported", exportHistory: [{ id: `export-${Date.now()}`, bookId: activeBook.id, format, status: "completed", fileUrl: "browser-download", errorMessage: "", createdAt: new Date().toISOString() }, ...(activeBook.exportHistory || [])] }); };
-  const goWorkspace = () => { saveNow(); setView("workspace"); setActiveBookId(null); setExportOpen(false); };
-  const projectManagementOverlays = <>{toast && <div className="success-toast" role="status">{toast}</div>}{bookToDelete && <DeleteDraftModal book={bookToDelete} onCancel={() => setBookToDelete(null)} onConfirm={deleteBook} />}</>;
+  const goWorkspace = () => { if (storageReady.current) saveNow(); setView("workspace"); setActiveBookId(null); setExportOpen(false); };
+  const handleSignOut = () => { goWorkspace(); signOut(); setAccountPanel(null); setWizardOpen(false); };
+  const openPlans = () => account ? setAccountPanel("plans") : setAccountPanel("sign-up");
+  const projectManagementOverlays = <>{gateMessage && <div className="gate-toast" role="alert"><strong>Studio access</strong><span>{gateMessage}</span><button onClick={openPlans}>View plans</button></div>}{toast && <div className="success-toast" role="status">{toast}</div>}{bookToDelete && <DeleteDraftModal book={bookToDelete} onCancel={() => setBookToDelete(null)} onConfirm={deleteBook} />}</>;
 
-  if (activeBook && view === "blueprint") return <><BlueprintView book={activeBook} onBack={goWorkspace} onStartWriting={() => setView("chapters")} onChange={updateBook} onDelete={() => setBookToDelete(activeBook)} />{projectManagementOverlays}{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
-  if (activeBook && view === "chapters") return <><ChapterStudio book={activeBook} lastSaved={lastSaved} onSave={() => saveNow()} onBack={goWorkspace} onBlueprint={() => setView("blueprint")} onChange={updateBook} onExport={() => setExportOpen(true)} onDelete={() => setBookToDelete(activeBook)} />{projectManagementOverlays}{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
-  return <div className="app-shell"><header className="main-header page-shell"><button className="brand" onClick={goWorkspace}><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></button><nav className={mobileMenu ? "open" : ""}><button className="active"><PenLine size={16} /> Author Workspace</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><BookOpenText size={16} /> Book Templates</button><button><CircleHelp size={16} /> Help</button></nav><div className="header-action"><button className="new-book-nav" onClick={() => openWizard()}><Sparkles size={15} /> New Book</button><button className="menu-button" onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><AuthorWorkspace books={books} onOpen={openBook} onCreate={openWizard} onCreatePath={openCreationPath} onDelete={setBookToDelete} /><footer><div className="page-shell footer-inner"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><p>Developed by <strong>ETL GIS Consulting LLC</strong></p><small>© ETL GIS Consulting LLC. All rights reserved.</small></div></footer><BetaFeedbackPanel books={books} onSubmit={submitFeedback} />{projectManagementOverlays}{wizardOpen && <NewBookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} initialPath={creationPath} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}</div>;
+  if (account && activeBook && activeBook.userId === account.id && view === "blueprint") return <><BlueprintView book={activeBook} onBack={goWorkspace} onStartWriting={() => setView("chapters")} onChange={updateBook} onDelete={() => setBookToDelete(activeBook)} />{projectManagementOverlays}{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
+  if (account && activeBook && activeBook.userId === account.id && view === "chapters") return <><ChapterStudio book={activeBook} lastSaved={lastSaved} onSave={() => saveNow()} onBack={goWorkspace} onBlueprint={() => setView("blueprint")} onChange={updateBook} onExport={() => setExportOpen(true)} onDelete={() => setBookToDelete(activeBook)} />{projectManagementOverlays}{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
+  return <div className="app-shell"><header className="main-header page-shell"><button className="brand" onClick={goWorkspace}><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></button><nav className={mobileMenu ? "open" : ""}><button className="active"><PenLine size={16} /> Author Workspace</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><BookOpenText size={16} /> Book Templates</button><button onClick={() => document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" })}><CircleHelp size={16} /> Plans</button></nav><div className="header-action">{authReady && (account ? <><button className="new-book-nav" onClick={() => openWizard()}><Sparkles size={15} /> New Book</button><UserMenu account={account} onAccount={() => setAccountPanel("account")} onPlan={() => setAccountPanel("plans")} onSignOut={handleSignOut} /></> : <><button className="header-sign-in" onClick={() => setAccountPanel("sign-in")}><LogIn size={15} /> Sign In</button><button className="new-book-nav" onClick={() => setAccountPanel("sign-up")}><Sparkles size={15} /> Start Free</button></>)}<button className="menu-button" onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><AuthorWorkspace books={accountBooks} account={account} activeProjectCount={activeProjectCount} onViewPlans={openPlans} onOpen={openBook} onCreate={openWizard} onCreatePath={openCreationPath} onDelete={setBookToDelete} /><footer><div className="page-shell footer-inner"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><p>Developed by <strong>ETL GIS Consulting LLC</strong></p><small>© ETL GIS Consulting LLC. All rights reserved.</small></div></footer>{account && <BetaFeedbackPanel books={accountBooks} onSubmit={submitFeedback} />}{projectManagementOverlays}{wizardOpen && <NewBookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} initialPath={creationPath} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}{accountPanel === "sign-up" && <AuthShell eyebrow="PRIVATE BETA ACCESS" title="Your next book begins with clarity." description="Create a focused workspace for your ideas, manuscripts, and publishing assets." onClose={() => setAccountPanel(null)}><SignUpForm onSuccess={() => setAccountPanel("plans")} onSignIn={() => setAccountPanel("sign-in")} /></AuthShell>}{accountPanel === "sign-in" && <AuthShell eyebrow="CREATOR SIGN IN" title="Welcome back to the studio." description="Continue the work already waiting in your connected publishing workspace." onClose={() => setAccountPanel(null)}><SignInForm onSuccess={(signedIn) => setAccountPanel(signedIn.planStatus === "inactive" ? "plans" : null)} onSignUp={() => setAccountPanel("sign-up")} onForgot={() => setAccountPanel("forgot")} /></AuthShell>}{accountPanel === "forgot" && <AuthShell eyebrow="ACCOUNT ACCESS" title="Return to your creative work." description="Production password recovery will arrive with the permanent account system." onClose={() => setAccountPanel(null)} onBack={() => setAccountPanel("sign-in")}><ForgotPasswordPlaceholder onSignIn={() => setAccountPanel("sign-in")} /></AuthShell>}{accountPanel === "plans" && account && <AuthShell eyebrow="PLAN SELECTION" title="Build at the level your vision requires." description="Choose now and activate paid access later—without entering payment details." onClose={() => setAccountPanel(null)}><PlanSelection onComplete={() => setAccountPanel(null)} /></AuthShell>}{accountPanel === "account" && account && <AuthShell eyebrow="YOUR CLARITY LOOP ACCOUNT" title="A professional home for your work." description="Review your creator profile, intended use, and selected studio plan." onClose={() => setAccountPanel(null)}><AccountPage account={account} onPlan={() => setAccountPanel("plans")} /></AuthShell>}</div>;
 }
