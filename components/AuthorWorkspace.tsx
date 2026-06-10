@@ -45,7 +45,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate }: Props) {
 
       <section className="workspace-section page-shell" id="workspace">
         <div className="workspace-intro">
-          <div><p className="eyebrow">YOUR AUTHOR WORKSPACE</p><h2>What book would you like to create today?</h2><p>Begin something new or return to the manuscript already waiting for you.</p></div>
+          <div><p className="eyebrow">MY BOOKS</p><h2>What book would you like to create today?</h2><p>Begin something new or return to the manuscript already waiting for you.</p></div>
           <div className="workspace-actions"><button className="primary-button" onClick={() => onCreate()}><Plus size={17} /> Create New Book</button>{current && <button className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={17} /> Continue Writing</button>}</div>
         </div>
         <div className="section-heading manuscript-heading"><div><p className="eyebrow">ON YOUR WRITING DESK</p><h3>Books in progress</h3></div>{current && <button className="text-button" onClick={() => onOpen(current, "blueprint")}>Review latest blueprint <ArrowRight size={15} /></button>}</div>
