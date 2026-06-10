@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { PDFDocument } from "pdf-lib";
-import { buildBlueprint, buildChapterPrompt, writeSampleChapter } from "../lib/ai";
+import { buildBlueprint, buildChapterGenerationContext, buildChapterPrompt, writeSampleChapter } from "../lib/ai";
 import { calculateBookBudget, getPublishingReadiness, recalculateBook } from "../lib/book-budget";
 import { renderDocx, renderPdf } from "../lib/export-renderers";
 import { assembleManuscript, findMissingChapterNumbers } from "../lib/manuscript";
-import { parseStudioState, serializeStudioState } from "../lib/persistence";
-import { analyzeBookQuality, normalizeParagraphCasing } from "../lib/quality";
+import { deleteBookFromState, parseStudioState, serializeStudioState, visibleBooks } from "../lib/persistence";
+import { analyzeBookQuality, analyzeChapterQuality, containsPromptLeakage, normalizeParagraphCasing } from "../lib/quality";
 import type { BetaFeedback, Book, BookForm } from "../lib/types";
 
 const form: BookForm = {
@@ -23,9 +23,14 @@ test("QA budget is exactly 49,500 words and allocates every word", () => {
   assert.equal(budget.targetWords, 49_500); assert.equal(budget.averageWordsPerChapter, 4_950); assert.equal(budget.chapterBudgets.reduce((a, b) => a + b, 0), 49_500);
 });
 
-test("chapter prompts contain all professional generation constraints", () => {
-  const book = qaBook(); const prompt = buildChapterPrompt(book, book.chapters[1]);
-  for (const phrase of ["Book thesis", "Book DNA", "Chapter purpose", "target word count", "Assigned opening style", "Previous chapter summaries", "Phrases and examples to avoid", "Required original examples", "Professional nonfiction structure", "practical application", "Do not repeat opening language"]) assert.match(prompt, new RegExp(phrase, "i"));
+test("chapter generation keeps structured guidance separate from manuscript output", () => {
+  const book = qaBook(); const chapter = book.chapters[1];
+  const context = buildChapterGenerationContext(book, chapter); const prompt = buildChapterPrompt(book, chapter);
+  assert.equal(context.audienceProfile, book.targetAudience);
+  assert.deepEqual(context.previousChapterSummaries, [book.chapters[0].summary]);
+  assert.match(prompt, /GENERATION_CONTEXT/); assert.match(prompt, /private editorial guidance/); assert.match(prompt, /Return only publishable chapter prose/);
+  const manuscript = writeSampleChapter(book, { ...chapter, targetWordCount: 350 });
+  assert.equal(containsPromptLeakage(manuscript), false); assert.doesNotMatch(manuscript, /Guide a professional|Book DNA|Target audience:/i);
 });
 
 test("QA reference scenario generates ten distinct chapters above the 90% manuscript gate", () => {
@@ -61,4 +66,22 @@ test("save and resume preserves books and beta feedback", () => {
 
 test("readiness blocks missing and underdeveloped chapters", () => {
   const book = qaBook(); book.chapters = book.chapters.slice(0, 9); const readiness = getPublishingReadiness(book); assert.equal(readiness.exportReadinessStatus, "blocked"); assert.deepEqual(readiness.missingChapterNumbers, [10]); assert.ok(readiness.blockers.some((blocker) => blocker.includes("90%")));
+});
+
+
+test("quality engine detects prompt leakage and cross-chapter duplicate paragraphs", () => {
+  const book = qaBook(); const duplicated = "A unique operational example becomes useful when the team records the decision, evidence, result, and next responsible move.";
+  book.chapters[0].content = duplicated;
+  const chapter = { ...book.chapters[1], content: `Guide a professional through this chapter.\n\n${duplicated}` };
+  const quality = analyzeChapterQuality(chapter, [book.chapters[0], chapter]);
+  assert.ok(quality.flags.includes("prompt_leakage")); assert.ok(quality.flags.includes("duplicate_paragraph")); assert.equal(quality.status, "prompt_leak_detected");
+});
+
+test("soft and permanent deletion remove drafts from Books in Progress", () => {
+  const book = qaBook(); const companion = { ...qaBook(), id: "keep-book", title: "Keep Me" };
+  const softDeleted = deleteBookFromState([book, companion], book.id, false, "2026-06-10T00:00:00.000Z");
+  assert.deepEqual(visibleBooks(softDeleted).map((item) => item.id), ["keep-book"]);
+  const deleted = softDeleted.find((item) => item.id === book.id)!;
+  assert.equal(deleted.status, "deleted"); assert.equal(deleted.deletedAt, "2026-06-10T00:00:00.000Z"); assert.deepEqual(deleted.chapters, []); assert.deepEqual(deleted.exportHistory, []);
+  assert.deepEqual(deleteBookFromState([book, companion], book.id, true).map((item) => item.id), ["keep-book"]);
 });

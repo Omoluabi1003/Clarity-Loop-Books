@@ -1,5 +1,6 @@
-export type ChapterStatus = "pending" | "drafted" | "underdeveloped" | "expanded" | "reviewed" | "locked" | "edited";
-export type BookStatus = "idea" | "blueprint" | "drafting" | "editing" | "ready_for_export" | "exported";
+export type ChapterStatus = "pending" | "drafted" | "underdeveloped" | "expanded" | "reviewed" | "locked" | "edited" | "needs_review";
+export type BookStatus = "idea" | "blueprint" | "drafting" | "editing" | "ready_for_export" | "exported" | "deleted";
+export type QualityStatus = "clean" | "needs_review" | "prompt_leak_detected" | "duplicate_content_detected" | "underdeveloped" | "ready";
 export type ChapterSizePreference = "short" | "medium" | "long" | "custom" | "auto";
 export type AIAssistanceLevel = "full" | "guided" | "assistive";
 export type OpeningStyle = "scenario" | "question" | "direct_claim" | "contrast" | "observation" | "case_example" | "problem_statement";
@@ -18,6 +19,19 @@ export interface BookDNA {
   thesis?: string;
 }
 
+export interface ChapterGenerationContext {
+  bookThesis: string;
+  audienceProfile: string;
+  tone: string;
+  writingStyle: string;
+  bookDna: BookDNA;
+  chapterIntention: string;
+  chapterOutline: string[];
+  previousChapterSummaries: string[];
+  openingStyle: OpeningStyle;
+  phrasesToAvoid: string[];
+}
+
 export interface Chapter {
   id: string;
   bookId?: string;
@@ -27,11 +41,15 @@ export interface Chapter {
   outline: string[];
   openingStyle: OpeningStyle;
   content: string;
+  generationContext?: ChapterGenerationContext;
   targetWordCount: number;
   actualWordCount: number;
   estimatedPages: number;
   qualityFlags: string[];
   qualityScore?: number;
+  qualityStatus?: QualityStatus;
+  leakageDetected?: boolean;
+  duplicateDetected?: boolean;
   status: ChapterStatus;
   locked: boolean;
   createdAt?: string;
@@ -88,6 +106,8 @@ export interface Book {
   coverPrompt: string;
   coverImageUrl?: string;
   qualityScore: number;
+  qualityFlags?: string[];
+  deletedAt?: string | null;
   status: BookStatus;
   progress: number;
   updatedAt: string;

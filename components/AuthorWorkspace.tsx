@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, BookMarked, FileCheck2, Plus, Sparkles } from "lucide-react";
 import type { Book, BookTemplate } from "@/lib/types";
+import { visibleBooks as getVisibleBooks } from "@/lib/persistence";
 import { BookCard } from "./BookCard";
 import { EngineeringShowcase } from "./EngineeringShowcase";
 import { HeroBookDemo } from "./HeroBookDemo";
@@ -13,10 +14,12 @@ interface Props {
   books: Book[];
   onOpen: (book: Book, view: "blueprint" | "chapters") => void;
   onCreate: (template?: BookTemplate) => void;
+  onDelete: (book: Book) => void;
 }
 
-export function AuthorWorkspace({ books, onOpen, onCreate }: Props) {
-  const current = books[0];
+export function AuthorWorkspace({ books, onOpen, onCreate, onDelete }: Props) {
+  const visibleBooks = getVisibleBooks(books);
+  const current = visibleBooks[0];
 
   return (
     <main>
@@ -49,7 +52,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate }: Props) {
           <div className="workspace-actions"><button className="primary-button" onClick={() => onCreate()}><Plus size={17} /> Create New Book</button>{current && <button className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={17} /> Continue Writing</button>}</div>
         </div>
         <div className="section-heading manuscript-heading"><div><p className="eyebrow">ON YOUR WRITING DESK</p><h3>Books in progress</h3></div>{current && <button className="text-button" onClick={() => onOpen(current, "blueprint")}>Review latest blueprint <ArrowRight size={15} /></button>}</div>
-        <div className="books-grid">{books.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} key={book.id} />)}<button className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
+        <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} key={book.id} />)}<button className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
       </section>
 
       <section className="method-section">

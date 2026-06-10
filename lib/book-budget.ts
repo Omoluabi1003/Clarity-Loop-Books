@@ -32,7 +32,8 @@ export function recalculateBook(book: Book): Book {
   const chapters = book.chapters.map((chapter) => {
     const actualWordCount = countWords(chapter.content);
     const completion = chapter.targetWordCount ? actualWordCount / chapter.targetWordCount : 0;
-    const status = chapter.locked ? "locked" : actualWordCount === 0 ? "pending" : completion < CHAPTER_GENERATION_THRESHOLD ? "underdeveloped" : chapter.status === "expanded" ? "expanded" : chapter.status === "reviewed" ? "reviewed" : "drafted";
+    const hasBlockingQualityIssue = (chapter.qualityFlags || []).some((flag) => flag === "prompt_leakage" || flag.startsWith("duplicate_") || flag === "repeated_phrase");
+    const status = chapter.locked ? "locked" : actualWordCount === 0 ? "pending" : completion < CHAPTER_GENERATION_THRESHOLD ? "underdeveloped" : hasBlockingQualityIssue || chapter.status === "needs_review" ? "needs_review" : chapter.status === "expanded" ? "expanded" : chapter.status === "reviewed" ? "reviewed" : chapter.status === "edited" ? "edited" : "drafted";
     return { ...chapter, qualityFlags: chapter.qualityFlags || [], openingStyle: chapter.openingStyle || "observation", actualWordCount, estimatedPages: Math.ceil(actualWordCount / wordsPerPage), status } as Chapter;
   });
   const actualWords = chapters.reduce((sum, chapter) => sum + chapter.actualWordCount, 0);
@@ -43,7 +44,7 @@ export function recalculateBook(book: Book): Book {
   const lengthReady = actualWords >= book.targetWords * MINIMUM_COMPLETION_THRESHOLD;
   const allComplete = completed === book.chapterCount && expected.size === 0;
   const qualityScore = chapters.length ? Math.round(chapters.reduce((sum, chapter) => sum + (chapter.qualityScore ?? (chapter.qualityFlags.length ? 70 : 100)), 0) / chapters.length) : 0;
-  const status = lengthReady && allComplete && book.authorName.trim() && book.coverPrompt.trim() ? "ready_for_export" : actualWords ? "drafting" : "blueprint";
+  const status = book.deletedAt || book.status === "deleted" ? "deleted" : lengthReady && allComplete && book.authorName.trim() && book.coverPrompt.trim() ? "ready_for_export" : actualWords ? "drafting" : "blueprint";
   return { ...book, wordsPerPage, chapters, actualWords, actualEstimatedPages, qualityScore, progress: book.chapterCount ? Math.round((completed / book.chapterCount) * 100) : 0, status };
 }
 
@@ -60,7 +61,8 @@ export function getPublishingReadiness(book: Book): PublishingReadiness {
   if (missingChapterNumbers.length) blockers.push(`Missing chapter number(s): ${missingChapterNumbers.join(", ")}.`);
   if (lengthAccuracyPercent < 90) blockers.push("The manuscript is below 90% of the requested length.");
   if (completedChapters < current.chapterCount) blockers.push(`${current.chapterCount - completedChapters} chapter(s) are incomplete or underdeveloped.`);
-  if (current.chapters.some((chapter) => chapter.qualityFlags.includes("duplicate_opening"))) warnings.push("Repeated chapter openings need review.");
+  if (current.chapters.some((chapter) => chapter.qualityFlags.includes("duplicate_opening"))) blockers.push("Repeated chapter openings need repair.");
+  if (current.chapters.some((chapter) => chapter.qualityFlags.some((flag) => flag === "prompt_leakage" || flag === "duplicate_paragraph" || flag === "repeated_phrase"))) blockers.push("Prompt leakage or duplicated manuscript content must be repaired before export.");
   if (current.chapters.some((chapter) => chapter.qualityFlags.length)) warnings.push("One or more chapters have unresolved quality flags.");
   if (!current.authorBio.trim()) warnings.push("Author bio is optional but recommended for a professional manuscript.");
   return {
