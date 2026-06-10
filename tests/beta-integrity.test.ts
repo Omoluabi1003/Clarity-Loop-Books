@@ -9,6 +9,7 @@ import { deleteBookFromState, parseStudioState, serializeStudioState, visibleBoo
 import { analyzeBookQuality, analyzeChapterQuality, containsPromptLeakage, normalizeParagraphCasing } from "../lib/quality";
 import type { BetaFeedback, Book, BookForm } from "../lib/types";
 import { BOOK_TYPES, COVER_DESIGN_MODES, CREATION_PATHS } from "../lib/studio-catalog";
+import { CREATION_PATH_CONFIG } from "../lib/creation-paths";
 
 const form: BookForm = {
   title: "The Clarity Loop", subtitle: "Modern Workflows, AI, and Why Understanding Now Comes After Action", authorName: "Paul A.K. Iyogun", authorBio: "Paul writes about modern work and practical clarity.", authorEmail: "", authorWebsite: "", publisherCredit: "ETL GIS Consulting LLC", idea: "Modernization is not merely the adoption of new tools. It is the adoption of new ways of creating clarity.", genre: "Business", targetAudience: "Leaders modernizing professional workflows", tone: "Professional, insightful, thought-provoking, authoritative", writingStyle: "Framework-driven, practical, analytical", chapterCount: 10, targetPageCount: 180, wordsPerPage: 275, chapterSizePreference: "auto", customChapterWords: 0, aiAssistanceLevel: "full", coverDirection: "Midnight blue field with a warm gold clarity loop",
@@ -136,6 +137,11 @@ test("creation path catalog exposes all seven tailored publishing workflows", ()
   assert.ok(BOOK_TYPES.fiction.includes("Speculative Fiction"));
   assert.ok(BOOK_TYPES.special.includes("TV Pilot"));
   assert.ok(COVER_DESIGN_MODES.includes("Executive Business"));
+  assert.equal(new Set(CREATION_PATHS.map((path) => path.stepOne.title)).size, 7);
+  assert.deepEqual(CREATION_PATH_CONFIG.fiction_book.stepOne.fields.map((field) => field.name), ["storyTitle", "authorName", "genre", "mainCharacter", "centralConflict", "setting", "emotionalPromise"]);
+  assert.ok(CREATION_PATH_CONFIG.nonfiction_book.stepOne.fields.some((field) => field.name === "frameworkOrMethod"));
+  assert.ok(CREATION_PATH_CONFIG.upload_manuscript.stepOne.fields.some((field) => field.type === "file"));
+  assert.ok(Object.values(CREATION_PATH_CONFIG).every((path) => path.steps.length === 4 && path.preview.length === 4));
 });
 
 test("forbidden phrase families are reported exactly, removed from clean count, and block readiness above threshold", () => {
