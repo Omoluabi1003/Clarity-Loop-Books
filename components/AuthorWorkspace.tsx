@@ -2,22 +2,25 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight, BookMarked, FileCheck2, Plus, Sparkles } from "lucide-react";
-import type { Book, BookTemplate } from "@/lib/types";
+import type { Book, BookTemplate, CreationPathId } from "@/lib/types";
 import { visibleBooks as getVisibleBooks } from "@/lib/persistence";
 import { BookCard } from "./BookCard";
 import { EngineeringShowcase } from "./EngineeringShowcase";
 import { HeroBookDemo } from "./HeroBookDemo";
 import { PublishingPack } from "./PublishingPack";
 import { TemplateSelector } from "./TemplateSelector";
+import { CreationPathSelector } from "./CreationPathSelector";
+import { StudioDirectory } from "./StudioDirectory";
 
 interface Props {
   books: Book[];
   onOpen: (book: Book, view: "blueprint" | "chapters") => void;
   onCreate: (template?: BookTemplate) => void;
   onDelete: (book: Book) => void;
+  onCreatePath: (path: CreationPathId) => void;
 }
 
-export function AuthorWorkspace({ books, onOpen, onCreate, onDelete }: Props) {
+export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath }: Props) {
   const visibleBooks = getVisibleBooks(books);
   const current = visibleBooks[0];
 
@@ -45,6 +48,9 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete }: Props) {
           {['Idea', 'Blueprint', 'Chapters', 'Manuscript', 'Export'].map((step, index) => <span key={step}><b>{index + 1}</b>{step}{index < 4 && <ArrowRight size={14} />}</span>)}
         </div>
       </section>
+
+      <CreationPathSelector onSelect={onCreatePath} />
+      <StudioDirectory />
 
       <section className="workspace-section page-shell" id="workspace">
         <div className="workspace-intro">

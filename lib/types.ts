@@ -8,6 +8,9 @@ export type OpeningStyle = "scenario" | "question" | "direct_claim" | "contrast"
 export type FeedbackType = "bug" | "export_issue" | "content_quality" | "feature_request" | "general";
 export type FeedbackSeverity = "low" | "medium" | "high" | "critical";
 export type ExportFormat = "pdf" | "docx" | "epub";
+export type ProjectType = "idea" | "nonfiction" | "fiction" | "upload" | "screenplay" | "publishing_pack" | "movie_pitch_pack";
+export type CreationPathId = "start_from_idea" | "nonfiction_book" | "fiction_book" | "upload_manuscript" | "screen_adaptation" | "publishing_pack" | "movie_pitch_pack";
+export interface CreationPath { id: CreationPathId; projectType: ProjectType; label: string; description: string; accent: string; }
 
 export interface BookDNA {
   promise: string;
@@ -84,6 +87,15 @@ export interface BetaFeedback {
 
 export interface Book {
   id: string;
+  projectType?: ProjectType;
+  sourceProjectId?: string;
+  publishingReadinessScore?: number;
+  coverQualityScore?: number;
+  coverStatus?: "missing" | "concept_ready" | "prompt_ready" | "placeholder_ready" | "uploaded" | "generated" | "approved" | "failed_quality";
+  originalManuscript?: string;
+  manuscriptAnalysis?: Record<string, unknown>;
+  adaptationAssets?: { logline: string; synopsis: string; beatSheet: string[]; sceneBreakdown: string[]; };
+  fictionAssets?: { storyBible: string; characterBible: string; worldBible: string; sceneCards: string[]; };
   userId?: string;
   title: string;
   subtitle: string;
@@ -129,6 +141,9 @@ export interface Book {
 }
 
 export interface BookForm {
+  projectType?: ProjectType;
+  sourceText?: string;
+  sourceUrl?: string;
   title: string;
   subtitle: string;
   authorName: string;

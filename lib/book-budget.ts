@@ -70,6 +70,7 @@ export function getPublishingReadiness(book: Book): PublishingReadiness {
   if (cleanLengthAccuracyPercent < 90) blockers.push("Clean manuscript word count is below 90% of the requested length.");
   if (completedChapters < current.chapterCount) blockers.push(`${current.chapterCount - completedChapters} chapter(s) are incomplete or failed quality review.`);
   if (analyzed.fatalFillerDetected) blockers.push("Numbered padding or prohibited filler was detected.");
+  if (analyzed.phraseThresholdExceeded) blockers.push(`Repeated phrase families exceed the publishing threshold: ${analyzed.repeatedPhraseFamilies.filter((family) => family.exceedsThreshold).map((family) => family.phrase).join(", ")}.`);
   if (analyzed.promptLeakageDetected || analyzed.scaffoldLeakageDetected) blockers.push("Prompt or scaffold leakage must be removed before export.");
   if (analyzed.duplicateParagraphRate > MAX_DUPLICATE_PARAGRAPH_RATE) blockers.push("Duplicate paragraph rate exceeds the publishing threshold.");
   if (analyzed.duplicateOpenings.length) blockers.push("Repeated chapter openings need repair.");

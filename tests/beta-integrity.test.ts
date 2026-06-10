@@ -8,6 +8,7 @@ import { assembleManuscript, findMissingChapterNumbers } from "../lib/manuscript
 import { deleteBookFromState, parseStudioState, serializeStudioState, visibleBooks } from "../lib/persistence";
 import { analyzeBookQuality, analyzeChapterQuality, containsPromptLeakage, normalizeParagraphCasing } from "../lib/quality";
 import type { BetaFeedback, Book, BookForm } from "../lib/types";
+import { BOOK_TYPES, COVER_DESIGN_MODES, CREATION_PATHS } from "../lib/studio-catalog";
 
 const form: BookForm = {
   title: "The Clarity Loop", subtitle: "Modern Workflows, AI, and Why Understanding Now Comes After Action", authorName: "Paul A.K. Iyogun", authorBio: "Paul writes about modern work and practical clarity.", authorEmail: "", authorWebsite: "", publisherCredit: "ETL GIS Consulting LLC", idea: "Modernization is not merely the adoption of new tools. It is the adoption of new ways of creating clarity.", genre: "Business", targetAudience: "Leaders modernizing professional workflows", tone: "Professional, insightful, thought-provoking, authoritative", writingStyle: "Framework-driven, practical, analytical", chapterCount: 10, targetPageCount: 180, wordsPerPage: 275, chapterSizePreference: "auto", customChapterWords: 0, aiAssistanceLevel: "full", coverDirection: "Midnight blue field with a warm gold clarity loop",
@@ -127,4 +128,27 @@ test("missing cover and padding failures cannot reach PDF or DOCX readiness", ()
   assert.equal(readiness.pdfReady, false);
   assert.equal(readiness.docxReady, false);
   assert.equal(readiness.readinessStatus, "needs_cover");
+});
+
+test("creation path catalog exposes all seven tailored publishing workflows", () => {
+  assert.deepEqual(CREATION_PATHS.map((path: { id: string }) => path.id), ["start_from_idea", "nonfiction_book", "fiction_book", "upload_manuscript", "screen_adaptation", "publishing_pack", "movie_pitch_pack"]);
+  assert.ok(BOOK_TYPES.nonfiction.includes("Government Modernization"));
+  assert.ok(BOOK_TYPES.fiction.includes("Speculative Fiction"));
+  assert.ok(BOOK_TYPES.special.includes("TV Pilot"));
+  assert.ok(COVER_DESIGN_MODES.includes("Executive Business"));
+});
+
+test("forbidden phrase families are reported exactly, removed from clean count, and block readiness above threshold", () => {
+  const phrase = "in relation to operating reality";
+  const repeated = Array.from({ length: 6 }, (_, index) => `Observation ${index + 1} matters ${phrase} because teams need specific evidence before acting.`).join("\n\n");
+  const book = qaBook();
+  book.chapters = book.chapters.map((chapter, index) => index === 0 ? { ...chapter, content: repeated, targetWordCount: 20, status: "reviewed", locked: true } : { ...chapter, content: Array.from({ length: 12 }, (_, paragraph) => `Chapter ${chapter.chapterNumber} evidence ${paragraph} describes a distinct decision, stakeholder, constraint, result, and next action for this specific case study.`).join("\n\n"), targetWordCount: 20, status: "reviewed", locked: true });
+  book.targetWords = 200;
+  book.useDesignedCover = true;
+  const analysis = analyzeBookQuality(book);
+  const family = analysis.repeatedPhraseFamilies.find((item) => item.phrase === phrase);
+  assert.equal(family?.occurrences, 6);
+  assert.equal(family?.exceedsThreshold, true);
+  assert.ok(analysis.cleanWordCount < analysis.rawWordCount);
+  assert.ok(getPublishingReadiness(book).blockers.some((blocker) => blocker.includes(phrase)));
 });

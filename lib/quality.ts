@@ -5,6 +5,31 @@ import type { Book, Chapter, QualityStatus } from "./types";
 const HEADING = /^#{1,6}\s+|^[A-Z][^.!?]{2,70}$/;
 const MIN_DUPLICATE_WORDS = 8;
 export const MAX_DUPLICATE_PARAGRAPH_RATE = 0.08;
+export const FORBIDDEN_PHRASE_FAMILIES = [
+  "in relation to operating reality", "in relation to decision evidence", "in relation to human behavior",
+  "useful unit of analysis", "remaining an attractive slogan", "without perfect data or unlimited authority",
+  "the governing question is how the thesis becomes visible", "observable artifacts, and changed behavior",
+  "what must become observable now", "unlike the earlier chapter's concern",
+] as const;
+export const QUALITY_THRESHOLDS = { singlePhrasePerBook: 25, singlePhrasePerChapter: 5, repeatedSentenceFamilyPerBook: 10, minimumCleanWordPercent: 90 } as const;
+
+export interface RepeatedPhraseFamily { phrase: string; occurrences: number; chapterOccurrences: { chapterNumber: number; occurrences: number }[]; exceedsThreshold: boolean; }
+
+function countPhrase(content: string, phrase: string): number {
+  const normalized = normalizeForComparison(content);
+  const needle = normalizeForComparison(phrase);
+  if (!needle) return 0;
+  return normalized.split(needle).length - 1;
+}
+
+export function findRepeatedPhraseFamilies(chapters: Chapter[]): RepeatedPhraseFamily[] {
+  return FORBIDDEN_PHRASE_FAMILIES.map((phrase) => {
+    const chapterOccurrences = chapters.map((chapter) => ({ chapterNumber: chapter.chapterNumber, occurrences: countPhrase(chapter.content, phrase) })).filter((item) => item.occurrences > 0);
+    const occurrences = chapterOccurrences.reduce((sum, item) => sum + item.occurrences, 0);
+    return { phrase, occurrences, chapterOccurrences, exceedsThreshold: occurrences > QUALITY_THRESHOLDS.singlePhrasePerBook || chapterOccurrences.some((item) => item.occurrences > QUALITY_THRESHOLDS.singlePhrasePerChapter) };
+  }).filter((family) => family.occurrences > 0);
+}
+
 
 export const FATAL_MANUSCRIPT_PATTERNS: RegExp[] = [
   /Application\s+\d+\s+of\s+chapter/i,
@@ -90,7 +115,6 @@ function sentenceTemplate(sentence: string): string {
   return normalizeForComparison(sentence)
     .replace(/\b\d+\b/g, "#")
     .split(" ")
-    .map((word) => word.length > 8 ? word.slice(0, 6) : word)
     .join(" ");
 }
 
@@ -99,7 +123,7 @@ function hasRepeatedSentenceTemplate(content: string): boolean {
   const sentences = content.split(/(?<=[.!?])\s+/).map(sentenceTemplate).filter((value) => value.split(" ").length >= 8);
   for (const sentence of sentences) {
     const count = (counts.get(sentence) || 0) + 1;
-    if (count >= 3) return true;
+    if (count > QUALITY_THRESHOLDS.repeatedSentenceFamilyPerBook) return true;
     counts.set(sentence, count);
   }
   return false;
@@ -121,6 +145,7 @@ export function cleanManuscriptContent(content: string, duplicateKeys: Set<strin
   const seen = new Set<string>();
   return normalizeParagraphCasing(content).split(/\n{2,}/).filter((block) => {
     if (FORBIDDEN_MANUSCRIPT_PATTERNS.some((pattern) => pattern.test(block))) return false;
+    if (FORBIDDEN_PHRASE_FAMILIES.some((phrase) => countPhrase(block, phrase) > 0)) return false;
     if (isHeading(block)) return true;
     const key = normalizeForComparison(block);
     if (!key || seen.has(key) || duplicateKeys.has(key)) return false;
@@ -139,6 +164,8 @@ export interface BookQualityAnalysis {
   promptLeakageDetected: boolean;
   scaffoldLeakageDetected: boolean;
   fatalFillerDetected: boolean;
+  repeatedPhraseFamilies: RepeatedPhraseFamily[];
+  phraseThresholdExceeded: boolean;
 }
 
 export function qualityStatusFor(flags: string[]): QualityStatus {
@@ -157,6 +184,7 @@ export function analyzeChapterQuality(chapter: Chapter, allChapters: Chapter[] =
   if (!content.trim()) flags.push("empty_section");
   if (containsPromptLeakage(content)) flags.push("prompt_leakage", "scaffold_leakage");
   if (containsFatalFiller(content)) flags.push("padding_filler");
+  if (FORBIDDEN_PHRASE_FAMILIES.some((phrase) => countPhrase(content, phrase) > QUALITY_THRESHOLDS.singlePhrasePerChapter)) flags.push("repeated_phrase");
   if (/\b(?:Application|Evidence|Decision|Pattern|Trial|Reflection|Practice)\s+\d+\b/i.test(content)) flags.push("numbered_placeholder_sequence");
   if (duplicateKeys.size || new Set(ownProse.map(normalizeForComparison)).size !== ownProse.length) flags.push("duplicate_paragraph");
   if (hasRepeatedSentenceTemplate(content)) flags.push("repeated_sentence_template");
@@ -185,6 +213,7 @@ export function analyzeBookQuality(book: Book): BookQualityAnalysis {
   const proseCount = normalized.reduce((sum, chapter) => sum + proseBlocks(chapter.content).length, 0);
   const duplicateParagraphCount = normalized.reduce((sum, chapter) => sum + proseBlocks(chapter.content).filter((block) => duplicateKeys.has(normalizeForComparison(block))).length, 0);
   const duplicateParagraphRate = proseCount ? duplicateParagraphCount / proseCount : 0;
+  const repeatedPhraseFamilies = findRepeatedPhraseFamilies(normalized);
   const score = chapters.length ? Math.round(chapters.reduce((sum, chapter) => sum + (chapter.qualityScore || 0), 0) / chapters.length) : 0;
   return {
     chapters,
@@ -196,5 +225,7 @@ export function analyzeBookQuality(book: Book): BookQualityAnalysis {
     promptLeakageDetected: normalized.some((chapter) => containsPromptLeakage(chapter.content)),
     scaffoldLeakageDetected: normalized.some((chapter) => SCAFFOLD_MANUSCRIPT_PATTERNS.some((pattern) => pattern.test(chapter.content))),
     fatalFillerDetected: normalized.some((chapter) => containsFatalFiller(chapter.content)),
+    repeatedPhraseFamilies,
+    phraseThresholdExceeded: repeatedPhraseFamilies.some((family) => family.exceedsThreshold),
   };
 }
