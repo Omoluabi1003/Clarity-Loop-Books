@@ -1,6 +1,6 @@
 import { calculateBookBudget, countWords } from "./book-budget";
 import { analyzeChapterQuality, normalizeParagraphCasing } from "./quality";
-import type { Book, BookForm, Chapter, OpeningStyle } from "./types";
+import type { Book, BookForm, Chapter, ChapterGenerationContext, OpeningStyle } from "./types";
 
 const chapterIdeas: Record<string, string[]> = {
   Memoir: ["The Place It Began", "Before I Knew Better", "The Day Everything Shifted", "Learning to Stay", "What I Carried Forward"],
@@ -40,27 +40,46 @@ export function buildBlueprintPrompt(form: BookForm): string {
   return `Create a complete book blueprint. Title: ${form.title}. Subtitle: ${form.subtitle}. Author: ${form.authorName}. Book idea: ${form.idea}. Target audience: ${form.targetAudience}. Genre: ${form.genre}. Tone: ${form.tone}. Writing style: ${form.writingStyle}. Target pages: ${budget.targetPages}. Target words: ${budget.targetWords}. Chapter count: ${budget.chapterCount}. Average words per chapter: ${budget.averageWordsPerChapter}.`;
 }
 
-export function buildChapterPrompt(book: Book, chapter: Chapter): string {
-  const previousSummaries = book.chapters
+export function buildChapterGenerationContext(book: Book, chapter: Chapter): ChapterGenerationContext {
+  const previousChapterSummaries = book.chapters
     .filter((candidate) => candidate.chapterNumber < chapter.chapterNumber)
     .sort((a, b) => a.chapterNumber - b.chapterNumber)
-    .map((candidate) => `Chapter ${candidate.chapterNumber}: ${candidate.summary}`);
+    .map((candidate) => candidate.summary);
   const phrasesToAvoid = book.chapters
     .filter((candidate) => candidate.chapterNumber !== chapter.chapterNumber && candidate.content)
     .map((candidate) => candidate.content.split(/\s+/).slice(0, 12).join(" "));
-  return `Write a complete professional nonfiction chapter, not a summary or short draft.
-Book thesis: ${book.bookDna.thesis || book.idea}.
-Book DNA: ${JSON.stringify(book.bookDna)}.
-Chapter purpose: ${chapter.summary}.
-Chapter title: ${chapter.title}.
-Chapter outline: ${chapter.outline.join("; ")}.
-Chapter target word count: ${chapter.targetWordCount}; meet at least 85 percent and aim for the full target.
-Assigned opening style: ${chapter.openingStyle}.
-Previous chapter summaries: ${previousSummaries.join(" | ") || "This is the opening chapter."}.
-Phrases and examples to avoid repeating: ${phrasesToAvoid.join(" | ") || "None yet."}.
-Required original examples: introduce at least one chapter-specific scenario, case example, or application not used elsewhere.
-Professional nonfiction structure: use meaningful section headings, developed reasoning, transitions, evidence-aware examples, and practical application.
-Do not repeat opening language, restate the book premise as filler, or recycle examples from earlier chapters.`;
+  return {
+    bookThesis: book.bookDna.thesis || book.idea,
+    audienceProfile: book.targetAudience,
+    tone: book.tone,
+    writingStyle: book.writingStyle,
+    bookDna: book.bookDna,
+    chapterIntention: chapter.summary,
+    chapterOutline: chapter.outline,
+    previousChapterSummaries,
+    openingStyle: chapter.openingStyle,
+    phrasesToAvoid,
+  };
+}
+
+export function buildChapterPrompt(book: Book, chapter: Chapter): string {
+  const context = buildChapterGenerationContext(book, chapter);
+  return `SYSTEM: The GENERATION_CONTEXT below is private editorial guidance. Never quote, label, summarize, or restate it in MANUSCRIPT_CONTENT.
+Return only publishable chapter prose. Do not include instructions, audience descriptions, Book DNA, metadata labels, or commentary about the writing task.
+Each chapter must open with original chapter-specific prose, advance the argument, and use examples not used in another chapter.
+
+<GENERATION_CONTEXT>
+${JSON.stringify(context)}
+</GENERATION_CONTEXT>
+
+<MANUSCRIPT_REQUIREMENTS>
+Chapter title: ${chapter.title}
+Target word count: ${chapter.targetWordCount}; meet at least 85 percent and aim for the full target.
+Use meaningful section headings, developed reasoning, transitions, evidence-aware examples, and practical application.
+Do not repeat opening language, restate the book premise as filler, recycle the chapter title awkwardly in prose, or reuse prior examples.
+</MANUSCRIPT_REQUIREMENTS>
+
+Return only <MANUSCRIPT_CONTENT> prose without the wrapper tags.`;
 }
 
 const paragraphs = [
@@ -73,7 +92,7 @@ const paragraphs = [
 ];
 
 const openingLead: Record<OpeningStyle, (book: Book, chapter: Chapter) => string> = {
-  scenario: (book, chapter) => `Chapter ${chapter.chapterNumber} begins with a ${book.targetAudience.toLowerCase()} confronting the exact decision at the heart of ${chapter.title}. The pressure is real, the information is incomplete, and waiting feels safer than moving.`,
+  scenario: (...[, chapter]) => `At ${8 + chapter.chapterNumber}:17 on a Tuesday morning, a routine decision exposes the practical tension explored here. The pressure is real, the information is incomplete, and waiting feels safer than moving.`,
   question: (_book, chapter) => `What would change if ${chapter.title.toLowerCase()} became a practiced capability rather than an idea you merely understood?`,
   direct_claim: (_book, chapter) => `${chapter.title} is not a secondary concern. It is the operating condition that determines whether insight becomes useful action.`,
   contrast: (_book, chapter) => `Most people treat ${chapter.title.toLowerCase()} as a matter of intention. In practice, it is a matter of design.`,
@@ -85,15 +104,14 @@ const openingLead: Record<OpeningStyle, (book: Book, chapter: Chapter) => string
 export function writeSampleChapter(book: Book, chapter: Chapter, existingContent = ""): string {
   const intro = `# ${chapter.title}
 
-${openingLead[chapter.openingStyle || "observation"](book, chapter)}
-
-${chapter.summary}`;
+${openingLead[chapter.openingStyle || "observation"](book, chapter)}`;
   let content = existingContent.trim() || intro;
   let index = 0;
   while (countWords(content) < chapter.targetWordCount) {
     const baseSection = chapter.outline[index % chapter.outline.length] || "Practical application";
     const section = index < chapter.outline.length ? baseSection : `${baseSection} — Practice ${index + 1}`;
-    const chapterContext = `Application ${index + 1} in chapter ${chapter.chapterNumber} advances this principle ${book.bookDna.thesis || book.idea}. Test it through a chapter-specific application: define the decision, observe the current pattern, run a bounded experiment, and record what the evidence changes.`;
+    const application = index + 1;
+    const chapterContext = `Application ${application} of chapter ${chapter.chapterNumber} tests this section’s principle. Evidence ${application} frames a specific situation. Decision ${application} names the choice. Pattern ${application} records current conditions. Trial ${application} produces evidence. Reflection ${application} chooses the next move.`;
     content += `
 
 ## ${section}

@@ -14,3 +14,20 @@ export function parseStudioState(raw: string): { books: Book[]; feedback: BetaFe
   if (parsed.schemaVersion !== 4 || !Array.isArray(parsed.books)) throw new Error("Unsupported saved project format.");
   return { books: parsed.books, feedback: Array.isArray(parsed.feedback) ? parsed.feedback : [] };
 }
+
+export function deleteBookFromState(books: Book[], bookId: string, permanent = false, deletedAt = new Date().toISOString()): Book[] {
+  if (permanent) return books.filter((book) => book.id !== bookId);
+  return books.map((book) => book.id === bookId ? {
+    ...book,
+    deletedAt,
+    status: "deleted",
+    chapters: [],
+    exportHistory: [],
+    coverImageUrl: undefined,
+    updatedAt: deletedAt,
+  } : book);
+}
+
+export function visibleBooks(books: Book[]): Book[] {
+  return books.filter((book) => !book.deletedAt && book.status !== "deleted");
+}
