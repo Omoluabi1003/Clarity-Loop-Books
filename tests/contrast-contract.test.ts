@@ -120,3 +120,23 @@ test("disabled controls remain fully opaque because their text still requires co
   const renderedAudit = css.slice(css.indexOf("/* Rendered contrast audit"));
   assert.match(renderedAudit, /button:disabled,\[aria-disabled="true"\]\{opacity:1;filter:none\}/);
 });
+
+test("supporting UI text has a site-wide readable size and opacity floor", () => {
+  const baseline = css.slice(css.indexOf("/* Legibility baseline"));
+  assert.match(baseline, /font-size:\.6875rem!important/);
+  assert.match(baseline, /small\{[\s\S]*?opacity:1!important/);
+});
+
+test("every live-demo stage explicitly uses readable text colors", () => {
+  const baseline = css.slice(css.indexOf("/* Legibility baseline"));
+  for (const selector of [
+    "demo-window-bar",
+    "demo-progress button",
+    "demo-idea small",
+    "demo-export>small",
+    "mini-pages>small",
+    "manuscript-count span",
+    "demo-caption p",
+  ]) assert.match(baseline, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(baseline, /\.hero-demo :where\(p,small,span,strong,label,button,h3\)\{opacity:1\}/);
+});

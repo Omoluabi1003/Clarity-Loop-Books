@@ -58,7 +58,7 @@ test("PDF and DOCX renderers preserve Arabic, Chinese, and extended Latin projec
   for (const [title, content] of [
     ["كتاب الوضوح", "هذا نص عربي واضح يحافظ على الحروف واتجاه الكتابة."],
     ["清晰之书", "这是用于验证简体中文字符导出的清晰文本。"],
-    ["Ìwé Ìmọ̀lára", "Yorùbá, Français, Español, Deutsch na Kiswahili."],
+    ["Ìwé Ìmọ̀lára", "Yorùbá, Français, Español, Deutsch na Swahili."],
   ] as const) {
     const book = unicodeBook(title, content);
     const [pdf, docx] = await Promise.all([renderPdf(book), renderDocx(book)]);

@@ -1,7 +1,7 @@
 {
   "meta": {
     "locale": "sw",
-    "name": "Kiswahili"
+    "name": "Swahili"
   },
   "common": {
     "language": "Lugha",
@@ -45,7 +45,7 @@
       "signInToYourStudio": "Ingia kwenye studio yako.",
       "keepARecognizableStudioIdentityOn": "Weka utambulisho wa studio unaotambulika kwenye kivinjari hiki na urudi kwenye nafasi yako ya kazi ya uandishi.",
       "continueWithTheAccountYouCreated": "Endelea na akaunti uliyofungua kwenye kivinjari hiki.",
-      "name": "Kiswahili",
+      "name": "Swahili",
       "yourName": "Jina lako",
       "emailAddress": "Anwani ya barua pepe",
       "youExampleCom": "you@example.com",
