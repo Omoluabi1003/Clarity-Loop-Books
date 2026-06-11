@@ -7,6 +7,7 @@ import { deleteBookFromState, LEGACY_STORAGE_KEYS, parseStudioState, serializeSt
 import { generateCoverPrompt } from "@/lib/ai";
 import { AUTH_ACCOUNTS_KEY, AUTH_SESSION_KEY, parseAccounts, parseSession, serializeSession, type AuthUser, type StoredAccount } from "@/lib/auth";
 import { sampleBooks } from "@/lib/templates";
+import { getGenreProfile } from "@/lib/genre-intelligence";
 import type { BetaFeedback, Book, BookForm, BookTemplate, CreationPathId, ExportFormat } from "@/lib/types";
 import { AuthorWorkspace } from "./AuthorWorkspace";
 import { BetaFeedbackPanel } from "./BetaFeedbackPanel";
@@ -25,9 +26,11 @@ function hydrateBook(raw: Book): Book {
   const targetPageCount = raw.targetPageCount || 180;
   const chapterCount = raw.chapters?.length || raw.chapterCount || 10;
   const targetWords = raw.targetWords || targetPageCount * wordsPerPage;
-  const chapters = (raw.chapters || []).map((chapter) => ({ ...chapter, actualWordCount: chapter.actualWordCount ?? (chapter.content.trim() ? chapter.content.trim().split(/\s+/).length : 0) }));
+  const chapters = (raw.chapters || []).map((chapter) => ({ ...chapter, selectedTitle: chapter.selectedTitle || chapter.title, actualWordCount: chapter.actualWordCount ?? (chapter.content.trim() ? chapter.content.trim().split(/\s+/).length : 0) }));
+  const genreProfile = raw.bookDna.genreProfile || getGenreProfile(raw.genre);
   return recalculateBook({
     ...raw,
+    bookDna: { ...raw.bookDna, bookType: raw.bookDna.bookType || raw.genre, genreProfile, creativeMode: raw.bookDna.creativeMode || genreProfile.creativeMode, readerExperience: raw.bookDna.readerExperience || genreProfile.readerExpectation, narrativeMode: raw.bookDna.narrativeMode || genreProfile.narrativeStructure, requiredElements: raw.bookDna.requiredElements || genreProfile.requiredElements, forbiddenPatterns: raw.bookDna.forbiddenPatterns || genreProfile.forbiddenPatterns, toneGuidance: raw.bookDna.toneGuidance || genreProfile.toneGuidance, chapterStructureHint: raw.bookDna.chapterStructureHint || genreProfile.narrativeStructure, openingStyleOptions: raw.bookDna.openingStyleOptions || genreProfile.openingStyles },
     authorName: raw.authorName || "Author name needed",
     authorBio: raw.authorBio || "",
     wordsPerPage,
@@ -134,7 +137,7 @@ export function BookStudio() {
       targetWords: budget.targetWords, averageWordsPerChapter: budget.averageWordsPerChapter, actualWords: 0, actualEstimatedPages: 0, qualityScore: 100, exportHistory: [],
       chapterSizePreference: form.chapterSizePreference, aiAssistanceLevel: form.aiAssistanceLevel, status: "blueprint", progress: 0,
       updatedAt: now, createdAt: now, color: "gold", coverDirection: form.coverDirection, coverPrompt: "", useDesignedCover: true, exportCoverWithBook: true, chapters: data.chapters.map((chapter: Book["chapters"][number]) => ({ ...chapter, bookId: id })),
-      bookDna: { thesis: form.idea, promise: `Help ${form.targetAudience.toLowerCase()} understand and apply the central idea of ${form.title}.`, tone: form.tone, audience: form.targetAudience, readingLevel: "Clear and conversational", voice: form.writingStyle, themes: ["clarity", "growth", "meaningful change"], styleRules: ["Use welcoming, non-technical language", "Include relatable examples and case studies", "End with practical implementation and a useful takeaway"] },
+      bookDna: data.bookDna, confirmedCreativeIntent: form.confirmedCreativeIntent, creativeIntentReport: data.creativeIntentReport, genreAlignmentScore: data.genreAlignmentScore, genreWarnings: data.genreWarnings || [],
       versionHistory: [now],
     };
     const book = { ...base, coverPrompt: generateCoverPrompt(base) };

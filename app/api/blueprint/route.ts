@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { buildBlueprint, buildBlueprintPrompt } from "@/lib/ai";
+import { buildBlueprint, buildBlueprintPrompt, validateBlueprintGenreAlignment } from "@/lib/ai";
+import { buildBookDna } from "@/lib/book-dna";
+import { generateBookIdentityReport } from "@/lib/creative-intent-diagnostic";
 import { calculateBookBudget } from "@/lib/book-budget";
 import type { BookForm } from "@/lib/types";
 
@@ -9,5 +11,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please add a title, author name, book idea, and audience first." }, { status: 400 });
   }
   const budget = calculateBookBudget(form);
-  return NextResponse.json({ chapters: buildBlueprint(form), budget, generationPrompt: buildBlueprintPrompt(form), source: process.env.OPENAI_API_KEY ? "ai-ready-fallback" : "studio-sample" });
+  const bookDna = buildBookDna(form, form.confirmedCreativeIntent);
+  const chapters = buildBlueprint(form, bookDna);
+  const alignment = validateBlueprintGenreAlignment(chapters, bookDna);
+  const creativeIntentReport = generateBookIdentityReport(form, bookDna);
+  return NextResponse.json({ chapters, budget, bookDna, creativeIntentReport, genreAlignmentScore: alignment.score, genreWarnings: alignment.warnings, generationPrompt: buildBlueprintPrompt(form, bookDna), source: process.env.OPENAI_API_KEY ? "ai-ready-fallback" : "studio-sample" });
 }

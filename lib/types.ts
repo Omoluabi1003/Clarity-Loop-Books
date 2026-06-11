@@ -5,12 +5,79 @@ export type PublishingReadinessStatus = "not_ready" | "needs_cover" | "needs_con
 export type ChapterSizePreference = "short" | "medium" | "long" | "custom" | "auto";
 export type AIAssistanceLevel = "full" | "guided" | "assistive";
 export type OpeningStyle = "scenario" | "question" | "direct_claim" | "contrast" | "observation" | "case_example" | "problem_statement";
+export type TitleQuality = "Strong" | "Needs work" | "Generic";
 export type FeedbackType = "bug" | "export_issue" | "content_quality" | "feature_request" | "general";
 export type FeedbackSeverity = "low" | "medium" | "high" | "critical";
 export type ExportFormat = "pdf" | "docx" | "epub";
 export type ProjectType = "idea" | "nonfiction" | "fiction" | "upload" | "screenplay" | "publishing_pack" | "movie_pitch_pack";
 export type CreationPathId = "start_from_idea" | "nonfiction_book" | "fiction_book" | "upload_manuscript" | "screen_adaptation" | "publishing_pack" | "movie_pitch_pack";
 export interface CreationPath { id: CreationPathId; projectType: ProjectType; label: string; description: string; accent: string; }
+
+
+export interface GenreProfile {
+  genreId: string;
+  label: string;
+  creativeMode: string;
+  readerExpectation: string;
+  narrativeStructure: string;
+  requiredElements: string[];
+  forbiddenPatterns: string[];
+  preferredChapterPatterns: string[];
+  toneGuidance: string;
+  openingStyles: OpeningStyle[];
+  exampleTypes: string[];
+  chapterPurposeStyle: string;
+  coverMoodHints: string[];
+}
+
+export interface ConfirmedCreativeIntent {
+  bookType: string;
+  tone: string;
+  narrativeMode: string;
+  readerExperience: string;
+  emotionalPromise: string;
+  chapterNamingStyle: string;
+  confirmedAt?: string;
+  skipped?: boolean;
+}
+
+export interface CreativeIntentReport {
+  selectedBookType: string;
+  detectedBookType: string;
+  detectedCreativeMode: string;
+  readerExperience: string;
+  narrativeMode: string;
+  emotionalPromise: string;
+  structuralRecommendation: string;
+  chapterNamingStyle: string;
+  contentToAvoid: string[];
+  generationConfidence: number;
+  warnings: string[];
+  recommendedAdjustments: string[];
+}
+
+export interface ChapterTitleOption {
+  title: string;
+  subtitle: string;
+  rationale: string;
+  tone: string;
+  chapterPromise: string;
+  suggestedOpeningStyle: OpeningStyle;
+  emotionalDirection: string;
+  keywords: string[];
+  genreFitScore: number;
+}
+
+export interface ChapterTitleContext {
+  title: string;
+  creativeAnchor: string;
+  chapterPromise: string;
+  suggestedOpeningStyle: OpeningStyle;
+  emotionalDirection: string;
+  tone: string;
+  keywords: string[];
+  genreFitScore: number;
+}
 
 export interface BookDNA {
   promise: string;
@@ -21,6 +88,19 @@ export interface BookDNA {
   themes: string[];
   styleRules: string[];
   thesis?: string;
+  bookType?: string;
+  genreProfile?: GenreProfile;
+  corePromise?: string;
+  readerExperience?: string;
+  narrativeMode?: string;
+  creativeMode?: string;
+  requiredElements?: string[];
+  forbiddenPatterns?: string[];
+  toneGuidance?: string;
+  chapterStructureHint?: string;
+  openingStyleOptions?: OpeningStyle[];
+  uniqueCreativeInstructions?: string[];
+  confirmedCreativeIntent?: ConfirmedCreativeIntent;
 }
 
 export interface ChapterGenerationContext {
@@ -34,6 +114,9 @@ export interface ChapterGenerationContext {
   previousChapterSummaries: string[];
   openingStyle: OpeningStyle;
   phrasesToAvoid: string[];
+  selectedTitle?: string;
+  titleContext?: ChapterTitleContext;
+  genreProfile?: GenreProfile;
 }
 
 export interface Chapter {
@@ -41,6 +124,14 @@ export interface Chapter {
   bookId?: string;
   chapterNumber: number;
   title: string;
+  selectedTitle?: string;
+  titleOptions?: ChapterTitleOption[];
+  titleLocked?: boolean;
+  titleContext?: ChapterTitleContext;
+  chapterPromise?: string;
+  suggestedOpeningStyle?: OpeningStyle;
+  emotionalDirection?: string;
+  titleQuality?: TitleQuality;
   summary: string;
   outline: string[];
   partTitle?: string;
@@ -121,6 +212,10 @@ export interface Book {
   chapterSizePreference: ChapterSizePreference;
   aiAssistanceLevel: AIAssistanceLevel;
   bookDna: BookDNA;
+  confirmedCreativeIntent?: ConfirmedCreativeIntent;
+  creativeIntentReport?: CreativeIntentReport;
+  genreAlignmentScore?: number;
+  genreWarnings?: string[];
   coverDirection?: string;
   coverPrompt: string;
   coverImageUrl?: string;
@@ -163,6 +258,7 @@ export interface BookForm {
   customChapterWords: number;
   aiAssistanceLevel: AIAssistanceLevel;
   coverDirection: string;
+  confirmedCreativeIntent?: ConfirmedCreativeIntent;
 }
 
 export interface BookTemplate {
