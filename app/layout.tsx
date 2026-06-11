@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { PWARegistration } from "@/components/PWARegistration";
+import { I18nProvider } from "@/components/i18n/I18nProvider";
 import "./globals.css";
 
 const siteUrl = "https://clarity-loop-books.vercel.app";
@@ -60,5 +61,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}<PWARegistration /></body></html>;
+  return <html lang="en" dir="ltr" suppressHydrationWarning><body><I18nProvider>{children}</I18nProvider><PWARegistration /></body></html>;
 }

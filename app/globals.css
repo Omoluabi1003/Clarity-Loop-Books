@@ -786,3 +786,21 @@ button:disabled,[aria-disabled="true"]{opacity:1;filter:none}
 }
 @keyframes demoStageEnter{from{transform:translate3d(0,12px,0)}to{transform:translate3d(0,0,0)}}
 @keyframes demoChapterEnter{from{transform:translate3d(-10px,0,0)}to{transform:translate3d(0,0,0)}}
+
+/* Global localization controls and bidirectional layout safeguards. */
+html:lang(ar) body{font-family:"Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif}
+html:lang(zh-CN) body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei","Heiti SC",Arial,sans-serif}
+#main-content{display:contents}
+.global-language-selector{position:fixed;z-index:1200;inset-block-start:max(12px,env(safe-area-inset-top));inset-inline-end:max(12px,env(safe-area-inset-right));display:flex;align-items:center;gap:8px;min-height:40px;padding:7px 10px;border:1px solid rgba(201,154,61,.45);border-radius:999px;background:rgba(11,22,46,.94);color:#fff;box-shadow:0 8px 26px rgba(0,0,0,.18);backdrop-filter:blur(12px)}
+.global-language-selector label{font-size:11px;font-weight:800;letter-spacing:.04em}
+.global-language-selector select{max-width:125px;border:0;background:transparent;color:#fff;font:inherit;font-size:12px;cursor:pointer;outline-offset:4px}
+.global-language-selector option{color:#101d35;background:#fff}
+.i18n-skip-link{position:fixed;z-index:1300;inset-block-start:8px;inset-inline-start:8px;padding:10px 14px;background:#fff;color:#101d35;transform:translateY(-160%)}
+.i18n-skip-link:focus{transform:none}
+[dir="rtl"] .global-language-selector select{text-align:right}
+[dir="rtl"] .hero-actions,[dir="rtl"] .workspace-actions,[dir="rtl"] .studio-actions-row,[dir="rtl"] .module-workspace-hero,[dir="rtl"] .auth-input,[dir="rtl"] .integrity-promise,[dir="rtl"] .book-card-actions,[dir="rtl"] .wizard-progress{direction:rtl}
+[dir="rtl"] .creation-path-card,[dir="rtl"] .studio-module-grid article,[dir="rtl"] .book-card,[dir="rtl"] .module-action-list button,[dir="rtl"] input,[dir="rtl"] textarea,[dir="rtl"] select{text-align:right}
+[dir="rtl"] .creation-path-card>small{right:auto;left:25px}
+[dir="rtl"] .template-arrow,[dir="rtl"] .module-action-list button>svg,[dir="rtl"] .studio-primary-button>svg,[dir="rtl"] .module-back-button>svg{transform:scaleX(-1)}
+[dir="rtl"] .module-action-list>button:hover,[dir="rtl"] .module-action-list>button.active,[dir="rtl"] .studio-module-grid button:hover{transform:translateX(-3px)}
+@media(max-width:700px){.global-language-selector{inset-block-start:auto;inset-block-end:max(10px,env(safe-area-inset-bottom));padding:6px 9px}.global-language-selector label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.global-language-selector select{max-width:105px}}
