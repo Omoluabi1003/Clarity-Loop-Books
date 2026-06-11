@@ -759,3 +759,7 @@ button:disabled,[aria-disabled="true"]{opacity:1;filter:none}
 .brand-mark.logo-mark{position:relative;display:block;flex:0 0 42px;width:42px;height:42px;overflow:hidden;border:0;border-radius:0;background:none;box-shadow:none}
 .brand-mark.logo-mark img{position:absolute;top:50%;left:50%;width:68px;height:68px;max-width:none;object-fit:contain;transform:translate(-50%,-50%)}
 .main-header .brand-mark.logo-mark,.studio-brand .brand-mark.logo-mark{border:0;background:none;box-shadow:none}
+
+/* Final call-to-action branding uses the supplied logo artwork instead of a text monogram. */
+.final-cta-inner>.brand-mark.logo-mark{width:88px;height:88px;flex-basis:88px;margin-bottom:27px;overflow:visible}
+.final-cta-inner>.brand-mark.logo-mark img{width:112px;height:112px}
