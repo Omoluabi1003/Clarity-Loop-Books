@@ -19,6 +19,7 @@ import { useMemo, useState } from "react";
 import type { AIAssistanceLevel, BookForm, BookTemplate, ChapterSizePreference, CreationPathId } from "@/lib/types";
 import { BOOK_TYPES } from "@/lib/studio-catalog";
 import { CREATION_PATH_CONFIG, type CreationFieldSection } from "@/lib/creation-paths";
+import { BrandLogo } from "./BrandLogo";
 
 const baseForm: BookForm = {
   projectType: "idea", sourceText: "", sourceUrl: "", title: "", subtitle: "", authorName: "", authorBio: "", authorEmail: "", authorWebsite: "", publisherCredit: "ETL GIS Consulting LLC", idea: "", genre: "Self-Help", targetAudience: "", tone: "Encouraging and clear", writingStyle: "Practical and story-led", chapterCount: 10, targetPageCount: 180, wordsPerPage: 275, chapterSizePreference: "auto", customChapterWords: 2500, aiAssistanceLevel: "guided", coverDirection: "",
@@ -152,7 +153,7 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
     <div className={`creation-studio-overlay studio-accent-${path.accent}`} role="dialog" aria-modal="true" aria-label={`${path.label} setup studio`}>
       <header className="creation-studio-header">
         <button type="button" className="studio-brand" onClick={onClose} aria-label="Close creation studio">
-          <span className="brand-mark">CL</span>
+          <BrandLogo />
           <span><strong>Clarity Loop</strong><small>CREATION ATELIER</small></span>
         </button>
         <div className="studio-path-identity"><Icon size={15} /><span>{path.shortLabel}</span><i /><small><b>Studio Mode</b> · Private working session</small></div>

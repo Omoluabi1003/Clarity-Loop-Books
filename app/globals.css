@@ -547,3 +547,11 @@ button:disabled{opacity:.72}
 .path-best-for,.path-output{color:#5d6470}
 .studio-section-header p,.studio-field>small,.path-field-grid label>small{color:#5f6670}
 .preview-intro p,.preview-confidence small{color:#606873}
+
+/* Official Clarity Loop identity: keep the source artwork square and undistorted. */
+.brand-logo{display:block;width:39px;height:39px;flex:0 0 auto;object-fit:contain}
+.main-header .brand-logo,.studio-header .brand-logo,.creation-studio-header .brand-logo{width:43px;height:43px}
+.auth-brand .brand-logo{width:48px;height:48px}
+footer .brand-logo{width:44px;height:44px}
+.final-cta .final-ornament{width:68px;height:68px;padding:4px;border:0;border-radius:14px;object-fit:contain;box-shadow:0 14px 32px rgba(16,29,53,.12)}
+@media(max-width:640px){.brand-logo{width:36px;height:36px}.main-header .brand-logo,.studio-header .brand-logo,.creation-studio-header .brand-logo{width:38px;height:38px}}

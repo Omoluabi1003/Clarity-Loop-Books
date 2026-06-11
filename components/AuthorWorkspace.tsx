@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, BookMarked, FileCheck2, Plus, Sparkles } from "lucide-react";
 import type { Book, BookTemplate, CreationPathId } from "@/lib/types";
 import { visibleBooks as getVisibleBooks } from "@/lib/persistence";
+import { BrandLogo } from "./BrandLogo";
 import { BookCard } from "./BookCard";
 import { EngineeringShowcase } from "./EngineeringShowcase";
 import { HeroBookDemo } from "./HeroBookDemo";
@@ -81,7 +82,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
       <PublishingPack onStart={() => onCreate()} />
 
       <section className="final-cta">
-        <div className="page-shell final-cta-inner"><span className="final-ornament">CL</span><p className="eyebrow">YOUR BOOK IS WAITING</p><h2>You already have the idea.<br /><em>Now give it a spine.</em></h2><p>No complicated prompts. No scattered documents. Just one beautiful, guided path from thought to finished book.</p><button type="button" className="gold-button" onClick={() => onCreate()}>Start Your Book <ArrowRight size={16} /></button><small>Developed by ETL GIS Consulting LLC</small></div>
+        <div className="page-shell final-cta-inner"><BrandLogo className="final-ornament" sizes="60px" /><p className="eyebrow">YOUR BOOK IS WAITING</p><h2>You already have the idea.<br /><em>Now give it a spine.</em></h2><p>No complicated prompts. No scattered documents. Just one beautiful, guided path from thought to finished book.</p><button type="button" className="gold-button" onClick={() => onCreate()}>Start Your Book <ArrowRight size={16} /></button><small>Developed by ETL GIS Consulting LLC</small></div>
       </section>
     </main>
   );
