@@ -777,9 +777,12 @@ button:disabled,[aria-disabled="true"]{opacity:1;filter:none}
 
 /* Keep the live demo independent of animation-completion callbacks. Mobile
    WebKit can suspend those callbacks, while a keyed CSS animation lets React
-   mount every stage immediately and uses only compositor-friendly transforms. */
-.demo-stage-content{height:100%;animation:demoStageEnter .36s cubic-bezier(.22,1,.36,1) both;will-change:transform}
-.demo-chapters>div{animation:demoChapterEnter .28s cubic-bezier(.22,1,.36,1) both;will-change:transform}
+   mount every stage immediately and uses only compositor-friendly transforms.
+   Reduced-motion devices still advance stages; they simply skip the movement. */
+.demo-stage-content{height:100%}
+@media(prefers-reduced-motion:no-preference){
+  .demo-stage-content{animation:demoStageEnter .36s cubic-bezier(.22,1,.36,1) both;will-change:transform}
+  .demo-chapters>div{animation:demoChapterEnter .28s cubic-bezier(.22,1,.36,1) both;will-change:transform}
+}
 @keyframes demoStageEnter{from{transform:translate3d(0,12px,0)}to{transform:translate3d(0,0,0)}}
 @keyframes demoChapterEnter{from{transform:translate3d(-10px,0,0)}to{transform:translate3d(0,0,0)}}
-@media(prefers-reduced-motion:reduce){.demo-stage-content,.demo-chapters>div{animation:none;will-change:auto}}
