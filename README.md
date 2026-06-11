@@ -38,6 +38,8 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+Set `NEXT_PUBLIC_SITE_URL` to the deployed HTTPS origin in production so Open Graph and Twitter share previews resolve the Clarity Loop logo to an absolute URL. Vercel deployments also fall back to `VERCEL_PROJECT_PRODUCTION_URL` automatically.
+
 ### npm proxy configuration
 
 Modern npm versions warn about `npm_config_http_proxy` because it is interpreted as the unsupported `http-proxy` npm setting. This variable is not set by the repository; it can be injected by a shell, container, or CI environment. Remove it before invoking npm:

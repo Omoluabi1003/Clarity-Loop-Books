@@ -26,6 +26,14 @@ test("the existing supplied logo is reused without adding unsupported binary ass
   assert.deepEqual(publicFiles.filter((file) => /\.(png|jpe?g|webp|gif)$/i.test(String(file))), []);
 });
 
+test("social share metadata publishes the supplied logo without duplicating the binary", () => {
+  assert.match(layout, /metadataBase: new URL\(siteUrl\)/);
+  assert.match(layout, /openGraph: \{/);
+  assert.match(layout, /twitter: \{/);
+  assert.match(layout, /images: \[\{[\s\S]*?url: logoUrl,/);
+  assert.match(layout, /alt: "Clarity Loop AI Book Studio logo"/);
+});
+
 test("the production shell registers a same-origin service worker", () => {
   assert.match(layout, /<PWARegistration \/>/);
   assert.match(registration, /serviceWorker\.register\("\/sw\.js"\)/);

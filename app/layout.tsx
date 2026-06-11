@@ -3,6 +3,10 @@ import { PWARegistration } from "@/components/PWARegistration";
 import logo from "../CL AI Logo.png";
 
 const logoUrl = logo.src.replaceAll(" ", "%20");
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000");
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -13,6 +17,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Clarity Loop AI Book Studio",
   description: "A premium AI publishing platform that turns ideas into publication-ready books.",
   applicationName: "Clarity Loop AI Book Studio",
@@ -29,6 +34,25 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: logoUrl, sizes: "1024x1024", type: "image/png" }],
     apple: [{ url: logoUrl, sizes: "1024x1024", type: "image/png" }],
+  },
+  openGraph: {
+    type: "website",
+    title: "Clarity Loop AI Book Studio",
+    description: "A premium AI publishing platform that turns ideas into publication-ready books.",
+    siteName: "Clarity Loop AI Book Studio",
+    images: [{
+      url: logoUrl,
+      width: 1024,
+      height: 1024,
+      alt: "Clarity Loop AI Book Studio logo",
+      type: "image/png",
+    }],
+  },
+  twitter: {
+    card: "summary",
+    title: "Clarity Loop AI Book Studio",
+    description: "A premium AI publishing platform that turns ideas into publication-ready books.",
+    images: [{ url: logoUrl, alt: "Clarity Loop AI Book Studio logo" }],
   },
 };
 
