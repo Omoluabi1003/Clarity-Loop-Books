@@ -4,6 +4,7 @@ import test from "node:test";
 
 const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 const authDialog = readFileSync(new URL("../components/AuthDialog.tsx", import.meta.url), "utf8");
+const bookStudio = readFileSync(new URL("../components/BookStudio.tsx", import.meta.url), "utf8");
 const rootLayout = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
 test("the application declares a device-width, safe-area-aware viewport", () => {
@@ -26,4 +27,13 @@ test("opening account dialogs prevents the page behind them from scrolling", () 
 
 test("auth fields do not summon the mobile keyboard before the user interacts", () => {
   assert.doesNotMatch(authDialog, /autoFocus/);
+});
+
+test("sign in and sign up remain available inside mobile navigation", () => {
+  assert.match(bookStudio, /className="mobile-account-actions"/);
+  assert.match(bookStudio, /onClick=\{\(\) => openAuth\("signin"\)\}/);
+  assert.match(bookStudio, /onClick=\{\(\) => openAuth\("signup"\)\}/);
+  assert.match(bookStudio, /aria-controls="primary-navigation"/);
+  assert.match(css, /@media\(max-width:820px\)[\s\S]*?\.mobile-account-actions\{display:block/);
+  assert.match(css, /\.header-auth-actions\{display:none!important\}/);
 });

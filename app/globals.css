@@ -627,3 +627,29 @@ html.auth-modal-open{overscroll-behavior:none}
   .auth-dialog form{gap:11px;margin-top:18px}
   .auth-input,.auth-submit{min-height:44px}
 }
+
+/* Mobile account access ------------------------------------------------------
+   Account controls live inside the same drawer as primary navigation so they
+   remain visible and do not overlap the menu on phones and small tablets. */
+.mobile-account-actions{display:none}
+
+@media(max-width:820px){
+  .main-header nav{display:none;position:absolute;z-index:30;top:72px;right:0;left:0;align-items:stretch;padding:10px;border:1px solid rgba(224,185,104,.24);border-radius:14px;background:#101d35;box-shadow:0 22px 55px rgba(0,0,0,.4)}
+  .main-header nav.open{display:flex;flex-direction:column}
+  .main-header nav>button{justify-content:flex-start;min-height:46px;padding:0 14px;border-radius:9px}
+  .menu-button{display:grid;min-width:44px;min-height:44px;place-items:center;border:1px solid rgba(224,185,104,.3);border-radius:9px;color:var(--studio-dark-heading);background:rgba(255,255,255,.04)}
+  .header-auth-actions{display:none!important}
+  .mobile-account-actions{display:block;margin-top:8px;padding:14px;border-top:1px solid rgba(224,185,104,.22);border-radius:0 0 9px 9px;background:rgba(3,9,18,.32)}
+  .mobile-account-actions>p{margin:0 0 12px;color:var(--studio-dark-muted);font-size:12px;line-height:1.5}
+  .mobile-account-actions>div{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .main-header nav .mobile-account-actions .auth-nav-button{display:flex;min-height:46px;justify-content:center;padding:0 12px;border:1px solid rgba(255,255,255,.18);border-radius:9px;background:rgba(255,255,255,.05);color:var(--studio-dark-heading);font-size:10px}
+  .main-header nav .mobile-account-actions .auth-create{border-color:rgba(224,185,104,.55);background:rgba(224,185,104,.1);color:var(--studio-dark-gold)}
+  .mobile-account-chip{display:flex;align-items:center;gap:10px;margin-bottom:12px;color:var(--studio-dark-heading);font-size:12px;font-weight:800}
+  .mobile-account-chip svg{flex:0 0 auto;color:var(--studio-dark-gold)}
+  .mobile-account-chip span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mobile-account-chip small{display:block;margin-bottom:3px;color:var(--studio-dark-muted);font-size:8px;letter-spacing:.09em;text-transform:uppercase}
+}
+
+@media(max-width:420px){
+  .mobile-account-actions>div{grid-template-columns:1fr}
+}
