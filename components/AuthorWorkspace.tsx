@@ -26,17 +26,17 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
 
   return (
     <main>
-      <section className="studio-hero page-shell">
+      <section className="studio-hero studio-dark-surface page-shell">
         <div className="studio-hero-atmosphere" aria-hidden="true"><span /><span /><span /><i /><i /></div>
         <motion.div className="studio-hero-copy" initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65 }}>
-          <p className="eyebrow"><Sparkles size={14} /> FROM FIRST THOUGHT TO FINISHED BOOK</p>
-          <h1>Turn Your Idea Into a <em>Published Book.</em></h1>
-          <p className="hero-lede">Clarity Loop helps you create a blueprint, chapters, manuscript, and publishing-ready export from one guided workspace.</p>
+          <p className="eyebrow studio-eyebrow"><Sparkles size={14} /> FROM FIRST THOUGHT TO FINISHED BOOK</p>
+          <h1 className="studio-dark-heading">Turn Your Idea Into a <em>Published Book.</em></h1>
+          <p className="hero-lede studio-dark-body">Clarity Loop helps you create a blueprint, chapters, manuscript, and publishing-ready export from one guided workspace.</p>
           <div className="hero-actions">
             <button type="button" className="primary-button hero-primary" onClick={() => onCreate()}><Plus size={18} /> Start Your Book</button>
             <button type="button" className="secondary-button" onClick={() => document.getElementById("book-build")?.scrollIntoView({ behavior: "smooth" })}>Watch the Book Build <ArrowRight size={16} /></button>
           </div>
-          <div className="trust-line"><span><FileCheck2 size={15} /> Your ideas stay editable</span><i /><span>Designed for real authors, not prompt engineers</span></div>
+          <div className="trust-line studio-muted-on-dark"><span><FileCheck2 size={15} /> Your ideas stay editable</span><i /><span>Designed for real authors, not prompt engineers</span></div>
           <div className="hero-studio-proof" aria-label="Studio capabilities">
             <span><strong>07</strong><small>Creative paths</small></span>
             <span><strong>01</strong><small>Connected studio</small></span>
@@ -48,7 +48,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
         </motion.div>
       </section>
 
-      <section className="workflow-strip">
+      <section className="workflow-strip studio-dark-surface">
         <div className="page-shell workflow-inner">
           <p>The complete publishing journey</p>
           {['Idea', 'Blueprint', 'Chapters', 'Manuscript', 'Export'].map((step, index) => <span key={step}><b>{index + 1}</b>{step}{index < 4 && <ArrowRight size={14} />}</span>)}

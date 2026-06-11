@@ -355,3 +355,83 @@ html,body{overflow-x:hidden}
   .module-action-list,.module-activity-panel{padding:22px 18px}
   .module-action-list>button{grid-template-columns:32px minmax(0,1fr);padding:16px}.module-action-list>button>svg{display:none}
 }
+
+/* Contrast contract -----------------------------------------------------------
+   Reusable text roles for every midnight surface, including auth, plans,
+   account placeholders, locked features, upgrade prompts, and empty states. */
+:root{
+  --studio-dark-heading:#f6f1e7;
+  --studio-dark-heading-bright:#fbf7ef;
+  --studio-dark-body:#d9e2f1;
+  --studio-dark-muted:#cbd5e1;
+  --studio-dark-gold:#e0b968;
+}
+.studio-dark-surface{color:var(--studio-dark-body)}
+.studio-dark-heading{color:var(--studio-dark-heading)!important;opacity:1!important}
+.studio-dark-subheading{color:var(--studio-dark-heading-bright)!important;opacity:1!important}
+.studio-dark-body{color:var(--studio-dark-body)!important;opacity:1!important}
+.studio-muted-on-dark{color:var(--studio-dark-muted)!important;opacity:1!important}
+.studio-eyebrow{color:var(--studio-dark-gold)!important;opacity:1!important}
+.studio-text-button-on-dark{color:var(--studio-dark-gold)!important;opacity:1!important}
+.studio-text-button-on-dark:hover{color:var(--studio-dark-heading-bright)!important}
+.studio-readable-card-title{color:var(--studio-dark-heading-bright)!important;opacity:1!important}
+.studio-readable-card-body{color:var(--studio-dark-body)!important;opacity:1!important}
+
+/* Existing dark application surfaces. Keep text roles explicit so legacy
+   component colors cannot become navy-on-navy as the product evolves. */
+.studio-dark-surface :where(.eyebrow,.editorial-label,.module-kicker){color:var(--studio-dark-gold)}
+.studio-dark-surface :where(.studio-dark-heading,.studio-dark-subheading,.studio-readable-card-title){opacity:1}
+.studio-hero .trust-line,.studio-hero .hero-studio-proof small{color:var(--studio-dark-muted)}
+.workflow-strip .workflow-inner>span{color:var(--studio-dark-body)}
+.workflow-strip .workflow-inner>p{color:var(--studio-dark-gold)}
+.workspace-section.studio-dark-section .section-heading h3{color:var(--studio-dark-heading-bright)}
+.studio-directory .directory-heading h2,.studio-directory .module-workspace-hero h2{color:var(--studio-dark-heading-bright)}
+.studio-directory .integrity-promise small,.studio-directory .module-action-list small,.studio-directory .module-placeholder-note small{color:var(--studio-dark-muted)}
+.studio-directory .studio-module-grid article>p:not(.eyebrow),.studio-directory .module-activity-panel>p:not(.module-kicker){color:var(--studio-dark-body)}
+.studio-directory .studio-module-grid ul,.studio-directory .module-activity-panel ul{color:var(--studio-dark-body)}
+.engineering-section .engineering-copy>p:not(.eyebrow),.engineering-section .system-stack article p{color:var(--studio-dark-body)}
+.engineering-section .system-stack article strong{color:var(--studio-dark-heading-bright)}
+footer .brand strong,footer .footer-inner p strong{color:var(--studio-dark-heading-bright)}
+footer .brand small,footer .footer-inner p,footer .footer-inner>small{color:var(--studio-dark-muted)}
+
+/* The final creation-path card is intentionally dark while its siblings are
+   paper cards, so it receives a dedicated readable-card treatment. */
+.studio-readable-card-on-dark{color:var(--studio-dark-heading-bright)!important}
+.studio-readable-card-on-dark>strong{color:var(--studio-dark-heading-bright)!important}
+.studio-readable-card-on-dark>p,.studio-readable-card-on-dark .path-best-for{color:var(--studio-dark-body)!important}
+.studio-readable-card-on-dark .path-output{color:var(--studio-dark-muted)!important}
+.studio-readable-card-on-dark>em{color:var(--studio-dark-gold)!important}
+
+/* Wizard chrome and dark summaries must not inherit the overlay's navy ink. */
+.creation-studio-header,.creation-studio-aside{color:var(--studio-dark-body)}
+.creation-studio-header .studio-brand strong,.creation-studio-aside h2{color:var(--studio-dark-heading-bright)}
+.creation-studio-header .brand small,.studio-path-identity small,.creation-studio-aside>p:not(.eyebrow),.creation-studio-aside .studio-support,.creation-studio-aside blockquote p{color:var(--studio-dark-muted)}
+.studio-progress li button{color:var(--studio-dark-muted)}
+.studio-progress li em small{color:#cbd5e1}
+.studio-progress li.active button,.studio-progress li.done button{color:var(--studio-dark-heading-bright)}
+.studio-plan-summary small{color:var(--studio-dark-muted)}
+.studio-plan-summary strong{color:var(--studio-dark-heading-bright)}
+.preview-art span{color:var(--studio-dark-heading-bright)}
+
+/* Shared hooks for upcoming account/auth and monetization views. These classes
+   preserve the same contrast contract without forcing those surfaces light. */
+:where(.auth-screen,.signup-screen,.signin-screen,.plan-selection-screen,.account-page-placeholder,.locked-feature-card,.upgrade-prompt,.studio-empty-state).studio-dark-surface :where(h1,h2,h3,h4){color:var(--studio-dark-heading-bright);opacity:1}
+:where(.auth-screen,.signup-screen,.signin-screen,.plan-selection-screen,.account-page-placeholder,.locked-feature-card,.upgrade-prompt,.studio-empty-state).studio-dark-surface :where(p,small,label,li){color:var(--studio-dark-body);opacity:1}
+:where(.auth-screen,.signup-screen,.signin-screen,.plan-selection-screen,.account-page-placeholder,.locked-feature-card,.upgrade-prompt,.studio-empty-state).studio-dark-surface :where(.eyebrow,.plan-label,.upgrade-label){color:var(--studio-dark-gold);opacity:1}
+
+/* Remaining dark cards, prompts, and compact labels in the current UI. */
+.main-header .brand small,.main-header nav button{color:var(--studio-dark-muted)}
+.main-header nav button:hover,.main-header nav button.active{color:var(--studio-dark-heading-bright)}
+.new-book-nav,.studio-button{color:var(--studio-dark-heading-bright)}
+.studio-dark-surface button:disabled{opacity:.8}
+.book-cover small,.book-cover em{color:var(--studio-dark-body);opacity:1}
+.mini-book-cover{color:var(--studio-dark-heading-bright)}
+.mini-book-cover small,.mini-book-cover span{color:var(--studio-dark-muted)}
+.readiness-card h3,.cover-preview h3{color:var(--studio-dark-heading-bright)}
+.readiness-card p,.readiness-card span,.cover-preview p{color:var(--studio-dark-body)}
+.cover-preview{color:var(--studio-dark-heading-bright)}
+.cover-preview .cover-loop,.cover-preview strong{color:var(--studio-dark-gold)}
+.plans-preview article.featured-plan{color:var(--studio-dark-heading-bright)}
+.plans-preview article.featured-plan small{color:var(--studio-dark-gold)}
+.plans-preview article.featured-plan p{color:var(--studio-dark-body)}
+.plans-preview article.featured-plan :where(button,a){color:var(--studio-dark-heading-bright)}
