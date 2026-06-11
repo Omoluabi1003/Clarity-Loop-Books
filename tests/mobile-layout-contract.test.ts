@@ -37,3 +37,13 @@ test("sign in and sign up remain available inside mobile navigation", () => {
   assert.match(css, /@media\(max-width:820px\)[\s\S]*?\.mobile-account-actions\{display:block/);
   assert.match(css, /\.header-auth-actions\{display:none!important\}/);
 });
+
+test("signed-out visitors are immediately blocked by a non-dismissible blurred auth gate", () => {
+  assert.match(bookStudio, /useState<AuthMode \| null>\("signin"\)/);
+  assert.match(bookStudio, /authenticationRequired = !authUser/);
+  assert.match(bookStudio, /dismissible=\{false\}/);
+  assert.match(bookStudio, /className=\{`auth-gated-content\$\{authenticationRequired \? " is-locked" : ""\}`\}/);
+  assert.match(css, /\.auth-gated-content\.is-locked\{[^}]*pointer-events:none[^}]*filter:blur\(10px\)/);
+  assert.match(authDialog, /dismissible && event\.key === "Escape"/);
+  assert.match(authDialog, /dismissible && event\.target === event\.currentTarget/);
+});

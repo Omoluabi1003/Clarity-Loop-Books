@@ -14,9 +14,10 @@ type Props = {
   onClose: () => void;
   onAuthenticated: (user: AuthUser, accounts: StoredAccount[]) => void;
   onModeChange: (mode: AuthMode) => void;
+  dismissible?: boolean;
 };
 
-export function AuthDialog({ mode, accounts, onClose, onAuthenticated, onModeChange }: Props) {
+export function AuthDialog({ mode, accounts, onClose, onAuthenticated, onModeChange, dismissible = true }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +28,7 @@ export function AuthDialog({ mode, accounts, onClose, onAuthenticated, onModeCha
   const isSignup = mode === "signup";
 
   useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    const closeOnEscape = (event: KeyboardEvent) => { if (dismissible && event.key === "Escape") onClose(); };
     const previousBodyOverflow = document.body.style.overflow;
     document.documentElement.classList.add("auth-modal-open");
     document.body.style.overflow = "hidden";
@@ -37,7 +38,7 @@ export function AuthDialog({ mode, accounts, onClose, onAuthenticated, onModeCha
       document.documentElement.classList.remove("auth-modal-open");
       document.body.style.overflow = previousBodyOverflow;
     };
-  }, [onClose]);
+  }, [dismissible, onClose]);
 
   const switchMode = (nextMode: AuthMode) => {
     setError("");
@@ -81,9 +82,9 @@ export function AuthDialog({ mode, accounts, onClose, onAuthenticated, onModeCha
   };
 
   return (
-    <div className="auth-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div className="auth-overlay" role="presentation" onMouseDown={(event) => { if (dismissible && event.target === event.currentTarget) onClose(); }}>
       <section className={`auth-dialog auth-screen ${isSignup ? "signup-screen" : "signin-screen"} studio-dark-surface`} role="dialog" aria-modal="true" aria-labelledby="auth-title">
-        <button className="auth-close" type="button" aria-label="Close account dialog" onClick={onClose}><X size={18} /></button>
+        {dismissible && <button className="auth-close" type="button" aria-label="Close account dialog" onClick={onClose}><X size={18} /></button>}
         <div className="auth-brand"><BrandMark /><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div>
         <div className="auth-heading">
           <span className="auth-icon"><UserRound size={20} /></span>
