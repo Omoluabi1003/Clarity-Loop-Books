@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
-import type { AIAssistanceLevel, BookForm, BookTemplate, ChapterSizePreference, CreationPathId } from "@/lib/types";
+import type { AIAssistanceLevel, BookForm, BookTemplate, ChapterSizePreference, ConfirmedCreativeIntent, CreationPathId, CreativeIntentReport } from "@/lib/types";
+import { buildConfirmedCreativeIntent, diagnoseCreativeIntent } from "@/lib/creative-intent-diagnostic";
 import { BOOK_TYPES } from "@/lib/studio-catalog";
 import { CREATION_PATH_CONFIG, type CreationFieldSection } from "@/lib/creation-paths";
 
@@ -70,6 +71,9 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<Record<string, string>>(initialData);
+  const [identityForm, setIdentityForm] = useState<BookForm | null>(null);
+  const [identityReport, setIdentityReport] = useState<CreativeIntentReport | null>(null);
+  const [intentAdjustments, setIntentAdjustments] = useState<Partial<ConfirmedCreativeIntent>>({});
   const [form, setForm] = useState<BookForm>(() => ({
     ...baseForm,
     projectType: path.projectType,
@@ -127,10 +131,27 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
       sourceText: data.uploadFile ? `Manuscript intake file: ${data.uploadFile}\n\n${canonicalIdea}` : canonicalIdea,
       genre: data.genre || data.adaptationFormat || data.format || data.publishingPlatform || form.genre,
     };
+    setError("");
+    setIdentityForm(derived);
+    setIdentityReport(diagnoseCreativeIntent(derived));
+    setIntentAdjustments({
+      bookType: derived.genre,
+      tone: derived.tone,
+      narrativeMode: diagnoseCreativeIntent(derived).narrativeMode,
+      readerExperience: diagnoseCreativeIntent(derived).readerExperience,
+      emotionalPromise: diagnoseCreativeIntent(derived).emotionalPromise,
+      chapterNamingStyle: diagnoseCreativeIntent(derived).chapterNamingStyle,
+    });
+  };
+
+  const createFromIdentity = async (skip = false) => {
+    if (!identityForm) return;
     setWorking(true);
     setError("");
+    const confirmedCreativeIntent = buildConfirmedCreativeIntent(identityForm, { ...intentAdjustments, skipped: skip });
+    const confirmedForm = { ...identityForm, genre: confirmedCreativeIntent.bookType, tone: confirmedCreativeIntent.tone, confirmedCreativeIntent };
     try {
-      await onCreate(derived);
+      await onCreate(confirmedForm);
     } catch {
       setError(`We could not create the ${path.output.primaryLabel.toLowerCase()}. Please try again.`);
       setWorking(false);
@@ -159,6 +180,7 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
         <button type="button" className="studio-close" onClick={onClose} aria-label="Close creation studio"><X size={20} /></button>
       </header>
 
+      {identityReport && identityForm && <div className="book-identity-overlay" role="dialog" aria-modal="true" aria-label="Book Identity Report"><section className="book-identity-card"><header><div><p className="eyebrow"><Sparkles size={14} /> BOOK IDENTITY REPORT</p><h2>Here’s what Clarity Loop understood.</h2><p>Confirm the creative direction, make a quick adjustment, or skip straight to the blueprint.</p></div><button type="button" onClick={() => { setIdentityReport(null); setIdentityForm(null); }} aria-label="Close identity report"><X size={18} /></button></header>{identityReport.warnings.length > 0 && <div className="identity-warning">{identityReport.warnings.join(" ")}</div>}<div className="identity-grid"><label><span>Selected book type</span><select value={intentAdjustments.bookType} onChange={(event) => setIntentAdjustments((current) => ({ ...current, bookType: event.target.value }))}>{[...BOOK_TYPES.nonfiction, ...BOOK_TYPES.fiction, ...BOOK_TYPES.special].map((type) => <option key={type}>{type}</option>)}</select></label><label><span>Detected creative mode</span><input value={identityReport.detectedCreativeMode.replaceAll("_", " ")} disabled /></label><label><span>Tone</span><input value={intentAdjustments.tone || ""} onChange={(event) => setIntentAdjustments((current) => ({ ...current, tone: event.target.value }))} /></label><label><span>Narrative mode</span><input value={intentAdjustments.narrativeMode || ""} onChange={(event) => setIntentAdjustments((current) => ({ ...current, narrativeMode: event.target.value }))} /></label><label className="identity-wide"><span>Reader experience</span><textarea value={intentAdjustments.readerExperience || ""} onChange={(event) => setIntentAdjustments((current) => ({ ...current, readerExperience: event.target.value }))} /></label><label className="identity-wide"><span>Emotional promise</span><textarea value={intentAdjustments.emotionalPromise || ""} onChange={(event) => setIntentAdjustments((current) => ({ ...current, emotionalPromise: event.target.value }))} /></label><label className="identity-wide"><span>Chapter naming style</span><input value={intentAdjustments.chapterNamingStyle || ""} onChange={(event) => setIntentAdjustments((current) => ({ ...current, chapterNamingStyle: event.target.value }))} /></label></div><div className="identity-readout"><span><small>Recommended structure</small><strong>{identityReport.structuralRecommendation}</strong></span><span><small>Content to avoid</small><strong>{identityReport.contentToAvoid.slice(0, 3).join(" · ")}</strong></span><span><small>Generation confidence</small><strong>{identityReport.generationConfidence}%</strong></span></div><footer><button type="button" className="studio-back-button" disabled={working} onClick={() => createFromIdentity(true)}>Skip confirmation</button><button type="button" className="studio-primary-button" disabled={working} onClick={() => createFromIdentity(false)}><CheckCircle2 size={16} /> {working ? "Building your blueprint…" : "Approve creative direction"}</button></footer>{error && <p className="studio-form-error">{error}</p>}</section></div>}
       <div className="creation-studio-shell">
         <div className="studio-background-motif" aria-hidden="true"><span /><span /><span /><i /></div>
         <aside className="creation-studio-aside">

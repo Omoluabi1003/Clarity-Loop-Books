@@ -1,6 +1,8 @@
 import { calculateBookBudget, countWords } from "./book-budget";
 import { analyzeChapterQuality, cleanManuscriptContent, normalizeParagraphCasing } from "./quality";
-import type { Book, BookForm, Chapter, ChapterGenerationContext, OpeningStyle } from "./types";
+import { buildBookDna } from "./book-dna";
+import { buildChapterTitleContext, generateChapterTitleOptions, titleQuality, validateChapterTitles } from "./chapter-title-intelligence";
+import type { Book, BookDNA, BookForm, Chapter, ChapterGenerationContext, OpeningStyle } from "./types";
 
 const openingStyles: OpeningStyle[] = ["scenario", "question", "direct_claim", "contrast", "observation", "case_example", "problem_statement"];
 
@@ -11,40 +13,52 @@ const CLARITY_LOOP_STRUCTURE = [
   { part: "Part IV: The Future of Work", chapters: ["Leading in the Age of Intelligent Systems"] },
 ];
 
-const professionalTitles = [
-  "The Cost of the Current Model", "Where Work Actually Stalls", "The Assumptions Behind the Plan", "A Better Operating Principle",
-  "Turning the Problem Into Evidence", "Learning Through Responsible Action", "The System Behind the Method", "Feedback That Improves Decisions",
-  "Modernization in Daily Practice", "Leading the Next Operating Model", "Scaling What the Team Learns", "Making the Change Durable",
-];
-
 const exampleBanks = [
-  ["an enterprise GIS portfolio review", "a public-sector permitting redesign", "a cross-functional data governance decision"],
-  ["an AI-assisted service workflow", "a modernization program with incomplete requirements", "a field team testing a new mobile process"],
-  ["a leadership team replacing status meetings with decision evidence", "a county agency simplifying intake", "a consulting team prototyping before procurement"],
+  ["a defining moment drawn from the book's subject", "a relationship that changes the direction", "a concrete consequence of the central tension"],
+  ["an opening scene grounded in place", "a choice made under pressure", "a revealing contrast between expectation and reality"],
+  ["a chapter-specific story", "an audience-relevant example", "a moment that earns the chapter's closing insight"],
 ];
 
 function clarityLoopBlueprint(form: BookForm): boolean {
-  return /clarity loop/i.test(form.title) && form.chapterCount === 10;
+  return /clarity loop/i.test(form.title) && form.chapterCount === 10 && buildBookDna(form).creativeMode === "framework_instruction";
 }
 
-export function buildBlueprint(form: BookForm): Chapter[] {
+function chapterIntent(bookDna: BookDNA, form: BookForm, index: number): string {
+  const element = bookDna.requiredElements?.[index % Math.max(1, bookDna.requiredElements.length)] || "a distinct movement in the reader's journey";
+  const pattern = bookDna.genreProfile?.preferredChapterPatterns[index % Math.max(1, bookDna.genreProfile.preferredChapterPatterns.length)] || "development";
+  return `Develop ${element} through a ${pattern}-centered chapter that advances ${form.idea.replace(/[.!?]+$/, "")}.`;
+}
+
+export function buildBlueprint(form: BookForm, bookDna = buildBookDna(form, form.confirmedCreativeIntent)): Chapter[] {
   const budget = calculateBookBudget(form);
   const structured = clarityLoopBlueprint(form) ? CLARITY_LOOP_STRUCTURE.flatMap((part) => part.chapters.map((title) => ({ partTitle: part.part, title }))) : [];
   return budget.chapterBudgets.map((targetWordCount, index) => {
-    const selected = structured[index] || { partTitle: form.genre === "Business" ? `Part ${Math.floor(index / 3) + 1}` : undefined, title: professionalTitles[index] || `A Durable Method for ${form.idea.split(/\s+/).slice(0, 4).join(" ")}` };
-    const thesis = `${selected.title} advances the book's central argument by showing how ${form.idea.replace(/[.!?]+$/, "").toLowerCase()} changes a specific decision, workflow, or leadership responsibility.`;
+    const intention = chapterIntent(bookDna, form, index);
+    const titleOptions = generateChapterTitleOptions(bookDna, intention, index);
+    const selectedTitle = structured[index]?.title || titleOptions[0].title;
+    const titleContext = buildChapterTitleContext(selectedTitle, bookDna, intention);
+    const openingStyle = titleContext.suggestedOpeningStyle || bookDna.openingStyleOptions?.[index % Math.max(1, bookDna.openingStyleOptions.length)] || openingStyles[index % openingStyles.length];
+    const outline = (bookDna.requiredElements || []).slice(0, 5).map((element) => element.charAt(0).toUpperCase() + element.slice(1));
     return {
       id: `chapter-${Date.now()}-${index}`,
       chapterNumber: index + 1,
-      title: selected.title,
-      partTitle: selected.partTitle,
-      thesis,
-      objective: `Move the reader from recognizing the chapter's operating problem to using a concrete method in real work.`,
+      title: selectedTitle,
+      selectedTitle,
+      titleOptions,
+      titleLocked: false,
+      titleContext,
+      titleQuality: titleQuality(selectedTitle, bookDna, intention),
+      chapterPromise: titleContext.chapterPromise,
+      suggestedOpeningStyle: titleContext.suggestedOpeningStyle,
+      emotionalDirection: titleContext.emotionalDirection,
+      partTitle: structured[index]?.partTitle,
+      thesis: intention,
+      objective: bookDna.genreProfile?.chapterPurposeStyle || intention,
       exampleBank: exampleBanks[index % exampleBanks.length],
-      readerTakeaway: `The reader can explain the chapter's distinct claim and identify one responsible experiment to run next.`,
-      summary: thesis,
-      outline: ["The operating tension", "A chapter-specific case", "The underlying framework", "Implementation in modern work", "What this changes next"],
-      openingStyle: openingStyles[index % openingStyles.length],
+      readerTakeaway: titleContext.chapterPromise,
+      summary: intention,
+      outline: outline.length ? outline : ["Opening movement", "Central development", "Turning point", "Meaning or application", "Closing movement"],
+      openingStyle,
       targetWordCount,
       actualWordCount: 0,
       cleanWordCount: 0,
@@ -58,29 +72,36 @@ export function buildBlueprint(form: BookForm): Chapter[] {
   });
 }
 
-export function buildBlueprintPrompt(form: BookForm): string {
+export function validateBlueprintGenreAlignment(chapters: Chapter[], bookDna: BookDNA) {
+  return validateChapterTitles(chapters, bookDna);
+}
+
+export function buildBlueprintPrompt(form: BookForm, bookDna = buildBookDna(form, form.confirmedCreativeIntent)): string {
   const budget = calculateBookBudget(form);
-  return `Create a part-based publishing blueprint for ${form.title}. Every chapter requires a unique thesis, objective, example bank, reader takeaway, and opening strategy. Keep blueprint guidance separate from prose. Target ${budget.targetWords} clean words across ${budget.chapterCount} chapters for ${form.targetAudience}.`;
+  return `Create a ${bookDna.genreProfile?.label} publishing blueprint for ${form.title}. The selected book type is authoritative. Follow ${bookDna.chapterStructureHint}; include ${bookDna.requiredElements?.join(", ")}; avoid ${bookDna.forbiddenPatterns?.join(", ")}. Use genre-aware chapter titles in the style of ${form.confirmedCreativeIntent?.chapterNamingStyle || bookDna.genreProfile?.preferredChapterPatterns.join(", ")}. Every chapter requires a unique creative promise, title context, examples, reader takeaway, and opening strategy. Target ${budget.targetWords} clean words across ${budget.chapterCount} chapters for ${form.targetAudience}.`;
 }
 
 export function buildChapterGenerationContext(book: Book, chapter: Chapter): ChapterGenerationContext {
   const previousChapterSummaries = book.chapters.filter((candidate) => candidate.chapterNumber < chapter.chapterNumber).sort((a, b) => a.chapterNumber - b.chapterNumber).map((candidate) => candidate.summary);
   const phrasesToAvoid = book.chapters.filter((candidate) => candidate.chapterNumber !== chapter.chapterNumber && candidate.content).map((candidate) => candidate.content.split(/\s+/).slice(0, 16).join(" "));
-  return { bookThesis: book.bookDna.thesis || book.idea, audienceProfile: book.targetAudience, tone: book.tone, writingStyle: book.writingStyle, bookDna: book.bookDna, chapterIntention: chapter.thesis || chapter.summary, chapterOutline: chapter.outline, previousChapterSummaries, openingStyle: chapter.openingStyle, phrasesToAvoid };
+  const selectedTitle = chapter.selectedTitle || chapter.title;
+  const titleContext = chapter.titleContext || buildChapterTitleContext(selectedTitle, book.bookDna, chapter.thesis || chapter.summary);
+  return { bookThesis: book.bookDna.thesis || book.idea, audienceProfile: book.targetAudience, tone: book.tone, writingStyle: book.writingStyle, bookDna: book.bookDna, chapterIntention: chapter.thesis || chapter.summary, chapterOutline: chapter.outline, previousChapterSummaries, openingStyle: titleContext.suggestedOpeningStyle || chapter.openingStyle, phrasesToAvoid, selectedTitle, titleContext, genreProfile: book.bookDna.genreProfile };
 }
 
 export function buildChapterPrompt(book: Book, chapter: Chapter): string {
   const context = buildChapterGenerationContext(book, chapter);
   return `SYSTEM: The GENERATION_CONTEXT below is private editorial guidance. Never quote, label, summarize, or restate it in MANUSCRIPT_CONTENT.
 Return only publishable chapter prose. Do not include instructions, audience descriptions, Book DNA, metadata labels, numbered filler, or commentary about the writing task.
-Build length through chapter-specific argument, case evidence, framework explanation, implementation guidance, reflection, and a transition—not repeated paragraph structures.
+Build length through genre-appropriate development, specific evidence or scenes, emotional and intellectual progression, and a meaningful transition—not repeated paragraph structures. Do not use business/professional structure unless the genre profile calls for it.
+The selected chapter title is the creative anchor for this chapter. Let it influence the opening, examples, pacing, tone, emotional direction, and closing insight. Do not treat it as a decorative heading only.
 
 <GENERATION_CONTEXT>
 ${JSON.stringify(context)}
 </GENERATION_CONTEXT>
 
 <MANUSCRIPT_REQUIREMENTS>
-Chapter title: ${chapter.title}
+Chapter title: ${chapter.selectedTitle || chapter.title}
 Unique thesis: ${chapter.thesis || chapter.summary}
 Examples reserved for this chapter: ${(chapter.exampleBank || []).join("; ")}
 Target clean word count: ${chapter.targetWordCount}; meet at least 85 percent and aim for the full target.
@@ -115,6 +136,29 @@ const openingLead: Record<OpeningStyle, (book: Book, chapter: Chapter) => string
   problem_statement: (_book, chapter) => `The central problem in ${chapter.title.toLowerCase()} is not a lack of information. It is the failure to convert available information into a specific claim, a responsible action, and evidence that can guide what happens next.`,
 };
 
+function genreOpening(book: Book, chapter: Chapter): string {
+  const mode = book.bookDna.creativeMode;
+  const anchor = chapter.titleContext?.creativeAnchor || `The promise inside “${chapter.title}” guides the opening.`;
+  if (mode === "life_story" || mode === "memory_journey") return `${anchor} Begin with a remembered place, a human relationship, and the small detail that reveals why this period mattered before explaining what it came to mean.`;
+  if (mode === "story_world" || mode === "screen_story" || mode === "imaginative_story") return `${anchor} The scene opens in motion: a character wants something, the setting resists, and a fresh consequence enters before anyone has time to explain it away.`;
+  if (mode === "spiritual_growth") return `${anchor} The honest beginning is not certainty but need—the quiet place where struggle, grace, and the possibility of calling meet.`;
+  if (mode === "applied_practice") return `${anchor} Start with the real situation the learner must handle, then make the first useful action visible and achievable.`;
+  return openingLead[chapter.openingStyle || "observation"](book, chapter);
+}
+
+function genreDevelopedParagraph(book: Book, chapter: Chapter, index: number): string {
+  const mode = book.bookDna.creativeMode;
+  const focus = chapter.outline[index % Math.max(1, chapter.outline.length)] || "the chapter's central movement";
+  const example = (chapter.exampleBank || exampleBanks[0])[index % (chapter.exampleBank?.length || exampleBanks[0].length)];
+  const promise = chapter.titleContext?.chapterPromise || chapter.chapterPromise || chapter.summary;
+  const emotional = chapter.titleContext?.emotionalDirection || chapter.emotionalDirection || "Move toward earned insight.";
+  if (mode === "life_story" || mode === "memory_journey") return `${focus} is best understood through a specific human moment rather than a summary of accomplishments. Consider ${example}: the place, the people present, what could not yet be known, and the choice that followed. The scene should preserve contradiction and dignity while showing how family, community, adversity, or affection shaped the person becoming visible here. Reflection arrives only after the lived detail has earned it. ${promise} ${emotional}`;
+  if (mode === "story_world" || mode === "screen_story" || mode === "imaginative_story") return `${focus} changes the situation on the page. Through ${example}, the character acts under pressure, another desire collides with that action, and the setting contributes a physical obstacle or revealing opportunity. Dialogue and sensory detail carry what exposition would otherwise explain. By the end of this movement, a choice has created a consequence that cannot simply be reset. ${promise} ${emotional}`;
+  if (mode === "spiritual_growth") return `${focus} begins with honest spiritual tension, illustrated through ${example}. The movement does not rush past doubt or pain; it notices where grace, testimony, scripture-aware reflection, restoration, or calling becomes personally meaningful. The reader is invited to recognize a faithful response without being handed a shallow guarantee. ${promise} ${emotional}`;
+  if (mode === "applied_practice") return `${focus} turns the idea into practice. Using ${example}, define the desired result, model one clear example, and ask the reader to complete a bounded exercise. Add a short checklist, a reflection prompt, and one application step that can be reviewed. ${promise} ${emotional}`;
+  return developedParagraph(book, chapter, index);
+}
+
 function developedParagraph(book: Book, chapter: Chapter, index: number): string {
   const lens = lenses[(index + chapter.chapterNumber) % lenses.length];
   const secondaryLens = lenses[(index * 2 + chapter.chapterNumber + 3) % lenses.length];
@@ -136,12 +180,14 @@ function developedParagraph(book: Book, chapter: Chapter, index: number): string
 }
 
 export function writeSampleChapter(book: Book, chapter: Chapter, existingContent = ""): string {
-  let content = existingContent.trim() || `# ${chapter.title}\n\n${openingLead[chapter.openingStyle || "observation"](book, chapter)}`;
+  const activeTitle = chapter.selectedTitle || chapter.title;
+  const anchoredChapter = { ...chapter, title: activeTitle, openingStyle: chapter.titleContext?.suggestedOpeningStyle || chapter.openingStyle };
+  let content = existingContent.trim() || `# ${activeTitle}\n\n${genreOpening(book, anchoredChapter)}`;
   let index = 0;
   while (countWords(content) < chapter.targetWordCount) {
     const outlinePoint = chapter.outline[index % Math.max(1, chapter.outline.length)] || "Implementation";
     const heading = index < chapter.outline.length ? outlinePoint : `${outlinePoint}: ${lenses[(index + chapter.chapterNumber) % lenses.length]}`;
-    content += `\n\n## ${heading}\n\n${developedParagraph(book, chapter, index)}`;
+    content += `\n\n## ${heading}\n\n${genreDevelopedParagraph(book, anchoredChapter, index)}`;
     index += 1;
   }
   const normalized = normalizeParagraphCasing(content);
