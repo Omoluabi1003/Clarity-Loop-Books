@@ -23,7 +23,7 @@ export const LOCALE_LABELS: Record<Locale, string> = {
   de: "Deutsch",
   "zh-CN": "中文",
   yo: "Yorùbá",
-  sw: "Kiswahili",
+  sw: "Swahili",
 };
 
 export const dictionaries: Record<Locale, TranslationDictionary> = {

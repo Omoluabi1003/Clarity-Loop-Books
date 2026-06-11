@@ -804,3 +804,58 @@ html:lang(zh-CN) body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei"
 [dir="rtl"] .template-arrow,[dir="rtl"] .module-action-list button>svg,[dir="rtl"] .studio-primary-button>svg,[dir="rtl"] .module-back-button>svg{transform:scaleX(-1)}
 [dir="rtl"] .module-action-list>button:hover,[dir="rtl"] .module-action-list>button.active,[dir="rtl"] .studio-module-grid button:hover{transform:translateX(-3px)}
 @media(max-width:700px){.global-language-selector{inset-block-start:auto;inset-block-end:max(10px,env(safe-area-inset-bottom));padding:6px 9px}.global-language-selector label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.global-language-selector select{max-width:105px}}
+
+/* Legibility baseline ---------------------------------------------------------
+   The audit found two compounding failures in supporting UI copy: legacy gray
+   values that fell below AA on paper and labels rendered at only 6–9px. Keep
+   text fully opaque, give secondary copy a semantic foreground, and establish
+   a practical type floor across the public site and author studio. */
+:where(.app-shell,.studio-page,.creation-studio-overlay,.auth-overlay,.success-shell) :where(p,li,dt,dd,label,small,span,strong,em){
+  text-rendering:optimizeLegibility;
+}
+:where(.app-shell,.studio-page,.creation-studio-overlay,.auth-overlay,.success-shell) small{
+  font-size:.6875rem!important;
+  line-height:1.45;
+  opacity:1!important;
+}
+:where(
+  .paper-label,.status-pill,.milestone-row,.outline-chips span,.theme-list span,
+  .chapter-nav-label,.chapter-nav button>span,.blueprint-link,.chapter-position,
+  .paper-meta,.context-section li span,.context-section dt,.readiness-card span,
+  .export-options em,.asset-chips button,.export-note,.format-row span,
+  .project-type-pill,.card-scores b,.path-best-for,.studio-stage-bar,
+  .studio-field-label,.editorial-label,.module-status,.module-kicker,
+  .identity-readout small,.title-quality,.success-kicker,.beta-pill,.asset-count
+){
+  font-size:.6875rem!important;
+  line-height:1.4;
+  opacity:1!important;
+}
+
+/* Live-demo contract: every word remains readable in active and inactive
+   stages. Stage state is communicated by fill and border, never faint text. */
+.hero-demo :where(p,small,span,strong,label,button,h3){opacity:1}
+.demo-window-bar,.demo-live,.demo-progress button,.demo-idea small,
+.demo-export>small,.mini-pages>small,.manuscript-count span,.demo-caption p{
+  color:var(--studio-light-muted);
+}
+.demo-window-bar,.demo-progress button,.demo-idea small,.demo-export>small,
+.demo-section-label,.mini-pages>small,.manuscript-count span,.demo-caption span{
+  font-size:.6875rem!important;
+  line-height:1.35;
+}
+.demo-progress button small{font-size:.625rem!important}
+.demo-synopsis p,.mini-pages p{color:var(--studio-light-body)}
+.demo-progress button.complete,.demo-chapters strong,.demo-export>div button{
+  color:var(--studio-light-heading);
+}
+.mini-book-cover :where(small,span){color:var(--studio-dark-muted)}
+
+/* Major paper surfaces share one readable secondary foreground. This catches
+   inherited legacy grays while allowing dark nested artwork to opt into the
+   dark-surface palette above. */
+:where(
+  .hero-demo,.book-card,.template-card,.method-step,.publishing-pack-card,
+  .final-cta,.blueprint-paper,.chapter-paper,.studio-live-preview,
+  .feedback-panel,.delete-draft-modal,.export-modal,.success-panel
+) :where(p,small,label,dt,dd){opacity:1}
