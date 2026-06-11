@@ -17,8 +17,8 @@ test("primary beta calls to action remain connected to real handlers", () => {
 });
 
 test("browser-local sign-up, sign-in, and sign-out stay available for beta", () => {
-  assert.match(shell, /setAuthMode\("signup"\)/);
-  assert.match(shell, /setAuthMode\("signin"\)/);
+  assert.match(shell, /openAuth\("signup"\)/);
+  assert.match(shell, /openAuth\("signin"\)/);
   assert.match(shell, /onClick=\{signOut\}/);
   assert.match(shell, /localStorage\.removeItem\(AUTH_SESSION_KEY\)/);
 });
