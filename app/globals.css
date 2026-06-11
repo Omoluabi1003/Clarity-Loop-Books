@@ -859,3 +859,53 @@ html:lang(zh-CN) body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei"
   .final-cta,.blueprint-paper,.chapter-paper,.studio-live-preview,
   .feedback-panel,.delete-draft-modal,.export-modal,.success-panel
 ) :where(p,small,label,dt,dd){opacity:1}
+
+/* Light-surface isolation ------------------------------------------------------
+   Paper cards, editors, previews, and dialogs frequently sit inside the navy
+   application shell. A dark ancestor must never recolor text inside one of
+   these light islands. Set the island foreground and explicitly reset heading
+   and form-control text because ancestor descendant rules outrank inheritance. */
+:where(
+  .hero-demo,.paper,.book-card,.template-card,.method-section,
+  .publishing-pack-card,.pack-assets,.final-cta,
+  .creation-path-card:not(:nth-child(7)),.creation-studio-main,
+  .studio-form-canvas,.studio-form-panel,.studio-live-preview,.book-identity-card,
+  .wizard-modal,.studio-page,.blueprint-stats,.dna-card,.chapter-context,
+  .paper-editor,.publishing-assets,.feedback-panel,.delete-draft-modal,
+  .export-modal,.success-main,.success-panel,.lock-overlay
+){
+  color:var(--studio-light-heading);
+}
+:where(
+  .hero-demo,.paper,.book-card,.template-card,.method-section,
+  .publishing-pack-card,.pack-assets,.final-cta,
+  .creation-path-card:not(:nth-child(7)),.creation-studio-main,
+  .studio-form-canvas,.studio-form-panel,.studio-live-preview,.book-identity-card,
+  .wizard-modal,.studio-page,.blueprint-stats,.dna-card,.chapter-context,
+  .paper-editor,.publishing-assets,.feedback-panel,.delete-draft-modal,
+  .export-modal,.success-main,.success-panel,.lock-overlay
+) :where(h1,h2,h3,h4,h5,h6,legend){
+  color:var(--studio-light-heading)!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+:where(
+  .hero-demo,.paper,.book-card,.template-card,.method-section,
+  .publishing-pack-card,.pack-assets,.final-cta,
+  .creation-path-card:not(:nth-child(7)),.creation-studio-main,
+  .studio-form-canvas,.studio-form-panel,.studio-live-preview,.book-identity-card,
+  .wizard-modal,.studio-page,.blueprint-stats,.dna-card,.chapter-context,
+  .paper-editor,.publishing-assets,.feedback-panel,.delete-draft-modal,
+  .export-modal,.success-main,.success-panel,.lock-overlay
+) :where(input,textarea,select){
+  color:var(--studio-light-heading);
+  opacity:1;
+}
+
+/* Intentional dark artwork embedded in paper keeps its own foreground palette. */
+:where(.book-cover,.mini-book-cover,.preview-art,.preview-art-story,
+  .preview-art-manuscript,.preview-art-cinema,.preview-art-pitch,
+  .preview-art-publishing,.readiness-card,.featured-plan,.studio-plan-summary,
+  .wizard-aside) :where(h1,h2,h3,h4,h5,h6,legend){
+  color:var(--studio-dark-heading)!important;
+}
