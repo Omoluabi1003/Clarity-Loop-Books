@@ -8,10 +8,10 @@ export function BookCard({ book, onOpen, onDelete }: { book: Book; onOpen: () =>
   const updated = book.updatedAt.includes("T") ? new Date(book.updatedAt).toLocaleString() : book.updatedAt;
   return <article className="book-card">
     <button className="book-card-open" onClick={onOpen} aria-label={`Open ${book.title}`}>
-      <span className={`book-cover ${book.color}`} style={book.coverImageUrl ? { backgroundImage: `url(${book.coverImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}><small>{book.authorName}</small><BookOpenText size={26} /><strong>{book.title}</strong><em>{book.genre}</em></span>
+      <span data-book-content className={`book-cover ${book.color}`} style={book.coverImageUrl ? { backgroundImage: `url(${book.coverImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}><small>{book.authorName}</small><BookOpenText size={26} /><strong>{book.title}</strong><em>{book.genre}</em></span>
       <span className="book-card-copy">
         <span className="card-kicker"><span><span className="project-type-pill">{(book.projectType || "nonfiction").replaceAll("_", " ")}</span><span className="status-pill">{book.status.replaceAll("_", " ")}</span></span><ArrowUpRight size={18} /></span>
-        <strong className="book-card-title">{book.title}</strong><span className="book-card-subtitle">by {book.authorName}</span>
+        <strong data-book-content className="book-card-title">{book.title}</strong><span data-book-content className="book-card-subtitle">by {book.authorName}</span>
         <ManuscriptProgress book={book} compact />
         <span className="card-scores"><b>Quality {book.qualityScore}%</b><b>Cover {book.coverQualityScore ?? (book.useDesignedCover ? 82 : 0)}%</b></span><span className="updated">{book.actualWords.toLocaleString()} words · {book.actualEstimatedPages} pages</span>
         <span className="updated"><Clock3 size={14} /> {updated} <Download size={13} /> Resume</span>
