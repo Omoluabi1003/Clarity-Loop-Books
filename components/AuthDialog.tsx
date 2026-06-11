@@ -27,8 +27,15 @@ export function AuthDialog({ mode, accounts, onClose, onAuthenticated, onModeCha
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    const previousBodyOverflow = document.body.style.overflow;
+    document.documentElement.classList.add("auth-modal-open");
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
+    return () => {
+      window.removeEventListener("keydown", closeOnEscape);
+      document.documentElement.classList.remove("auth-modal-open");
+      document.body.style.overflow = previousBodyOverflow;
+    };
   }, [onClose]);
 
   const switchMode = (nextMode: AuthMode) => {
@@ -85,8 +92,8 @@ export function AuthDialog({ mode, accounts, onClose, onAuthenticated, onModeCha
         </div>
 
         <form onSubmit={submit}>
-          {isSignup && <label><span>Name</span><div className="auth-input"><UserRound size={17} /><input autoFocus autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" /></div></label>}
-          <label><span>Email address</span><div className="auth-input"><Mail size={17} /><input autoFocus={!isSignup} type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></div></label>
+          {isSignup && <label><span>Name</span><div className="auth-input"><UserRound size={17} /><input autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" /></div></label>}
+          <label><span>Email address</span><div className="auth-input"><Mail size={17} /><input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></div></label>
           <label><span>Password</span><div className="auth-input"><LockKeyhole size={17} /><input type={showPassword ? "text" : "password"} autoComplete={isSignup ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={isSignup ? "At least 8 characters" : "Your password"} /><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword((current) => !current)}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
           {isSignup && <label><span>Confirm password</span><div className="auth-input"><Check size={17} /><input type={showPassword ? "text" : "password"} autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="Repeat your password" /></div></label>}
           {error && <p className="auth-error" role="alert">{error}</p>}
