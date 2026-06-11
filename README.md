@@ -76,7 +76,7 @@ Before a hosted release, connect the existing integration points to:
 1. Replace the browser-local beta account layer with production authentication and a persistent database using the `Book` and `Chapter` structures in `lib/types.ts`.
 2. A production AI provider in `app/api/blueprint/route.ts` and `app/api/chapter/route.ts`.
 3. Hosted object storage for generated PDF/DOCX artifacts and the export-history URLs. PDF and DOCX are already rendered as valid files by the server export route; EPUB remains a future format.
-4. Stripe plans for Free, Pro, and Publisher tiers.
+4. Monetization and paid plan processing after the no-payment beta has been validated.
 5. Production analytics, monitoring, content safeguards, and rate limiting.
 
 ## Legacy publishing utilities

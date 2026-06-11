@@ -463,87 +463,125 @@ footer .brand small,footer .footer-inner p,footer .footer-inner>small{color:var(
 @media(max-width:1120px){.account-chip{display:none}.auth-nav-button{padding:0 9px}.auth-nav-button svg{display:none}}
 @media(max-width:820px){.auth-actions{position:absolute;top:72px;right:18px;display:none;width:min(290px,calc(100vw - 36px));padding:10px;border:1px solid rgba(224,185,104,.2);border-radius:10px;background:#0b162e;box-shadow:0 18px 45px rgba(0,0,0,.3)}.main-header:has(nav.open) .auth-actions{display:flex}.auth-actions .auth-nav-button{min-height:42px;flex:1}.auth-actions .auth-nav-button svg{display:block}.auth-actions .account-chip{display:flex;flex:1}.auth-actions .auth-signout{flex:0 0 auto}.auth-dialog{padding:32px 22px}.auth-heading{padding-left:0}.auth-icon{position:static;margin-bottom:14px}}
 
-/* Neutral ink surfaces and site-wide contrast audit ---------------------------------
-   The studio previously used saturated navy as its default canvas. Keep the premium
-   dark presentation without the blue cast, and give every text role an AA-friendly
-   foreground instead of relying on inherited opacity. */
+/* Beta contrast and accessibility contract ---------------------------------------
+   Midnight navy remains the product canvas; ivory, slate, and warm gold provide
+   explicit semantic foreground roles. Keep critical copy fully opaque. */
 :root{
-  --deep-ink:#12110f;
-  --midnight-navy:#181613;
-  --rich-navy:#24211d;
-  --midnight:#171512;
-  --navy:#24211d;
-  --muted-blue:#34302a;
-  --studio-dark-heading:#fffdf8;
-  --studio-dark-heading-bright:#ffffff;
-  --studio-dark-body:#eeeae2;
-  --studio-dark-muted:#d6d0c6;
-  --studio-dark-gold:#f0c979;
+  --deep-ink:#07111f;
+  --midnight-navy:#0b162e;
+  --rich-navy:#162844;
+  --midnight:#07111f;
+  --navy:#0b162e;
+  --muted-blue:#344154;
+  --studio-dark-heading:#fbf7ef;
+  --studio-dark-heading-bright:#f6f1e7;
+  --studio-dark-body:#d9e2f1;
+  --studio-dark-muted:#cbd5e1;
+  --studio-dark-gold:#e0b968;
+  --studio-light-heading:#07111f;
+  --studio-light-body:#344154;
+  --studio-focus:#e0b968;
+  --studio-danger:#ffdddd;
+  --studio-success:#d9fbe8;
+  --studio-warning:#fff0bd;
 }
-body{background:#fbfaf6;color:#171512}
+body{background:#fbfaf6;color:var(--studio-light-heading)}
 .app-shell{background:var(--deep-ink)}
-.app-shell::before{background:radial-gradient(circle at 87% 22%,rgba(201,154,61,.14),transparent 24%),radial-gradient(circle at 10% 16%,rgba(255,255,255,.055),transparent 31%),linear-gradient(135deg,#12110f,#1a1815 52%,#100f0d)}
-.app-shell::after{opacity:.22}
-.workflow-strip{background:#171512}
-.creation-path-section{background:linear-gradient(180deg,#171512 0%,#211e1a 53%,#151310 100%)}
-.creation-path-section::before{background:radial-gradient(circle at 12% 18%,rgba(255,255,255,.06),transparent 27%),radial-gradient(circle at 83% 12%,rgba(201,154,61,.17),transparent 24%),linear-gradient(115deg,transparent 0 71%,rgba(224,185,104,.09) 71% 71.1%,transparent 71.1%)}
-.creation-path-card:nth-child(7){background:linear-gradient(145deg,#29251f,#141210 74%)}
-.creation-studio-overlay{background:#12110f}
-.creation-studio-overlay::before{background:radial-gradient(circle at 82% 10%,rgba(201,154,61,.13),transparent 28%),radial-gradient(circle at 10% 70%,rgba(255,255,255,.045),transparent 30%),linear-gradient(135deg,#12110f,#191714 55%,#211e1a)}
-.creation-studio-header{background:rgba(18,17,15,.94)}
-.creation-studio-aside{background:linear-gradient(160deg,rgba(35,32,28,.98),rgba(18,17,15,.99))}
-.studio-progress li button>span{background:#24211d;box-shadow:0 0 0 5px rgba(18,17,15,.78)}
-.preview-art,.preview-art-story,.preview-art-manuscript,.preview-art-cinema,.preview-art-pitch,.preview-art-publishing{background:linear-gradient(135deg,#171512,#302b24)}
-.studio-directory{background:#171512}
-.engineering-section,.promise-section{background:#1b1916}
-footer{background:#11100e}
-.module-action-list,.module-activity-panel{background:#24211d}
-.auth-dialog{background:radial-gradient(circle at 100% 0,rgba(224,185,104,.13),transparent 28%),linear-gradient(145deg,#24211d,#12110f 72%)}
-@media(max-width:820px){.auth-actions{background:#1b1916}}
+.app-shell::before{background:radial-gradient(circle at 87% 22%,rgba(201,154,61,.16),transparent 24%),radial-gradient(circle at 10% 16%,rgba(217,226,241,.07),transparent 31%),linear-gradient(135deg,#07111f,#0b162e 52%,#07111f)}
+.workflow-strip{background:#0b162e;border-color:rgba(224,185,104,.2)}
+.creation-path-section{background:linear-gradient(180deg,#07111f 0%,#0b162e 53%,#07111f 100%)}
+.creation-path-section::before{background:radial-gradient(circle at 12% 18%,rgba(217,226,241,.07),transparent 27%),radial-gradient(circle at 83% 12%,rgba(201,154,61,.18),transparent 24%),linear-gradient(115deg,transparent 0 71%,rgba(224,185,104,.1) 71% 71.1%,transparent 71.1%)}
+.creation-path-card:nth-child(7){background:linear-gradient(145deg,#162844,#07111f 74%)}
+.creation-studio-overlay{background:#07111f}
+.creation-studio-overlay::before{background:radial-gradient(circle at 82% 10%,rgba(201,154,61,.15),transparent 28%),radial-gradient(circle at 10% 70%,rgba(217,226,241,.055),transparent 30%),linear-gradient(135deg,#07111f,#0b162e 55%,#162844)}
+.creation-studio-header{background:rgba(7,17,31,.96)}
+.creation-studio-aside{background:linear-gradient(160deg,rgba(22,40,68,.98),rgba(7,17,31,.99))}
+.studio-progress li button>span{background:#162844;box-shadow:0 0 0 5px rgba(7,17,31,.8)}
+.preview-art,.preview-art-story,.preview-art-manuscript,.preview-art-cinema,.preview-art-pitch,.preview-art-publishing{background:linear-gradient(135deg,#07111f,#162844)}
+.studio-directory{background:#07111f}
+.engineering-section,.promise-section{background:#0b162e}
+footer{background:#050c16}
+.module-action-list,.module-activity-panel{background:#0b162e}
+.auth-dialog{background:radial-gradient(circle at 100% 0,rgba(224,185,104,.14),transparent 28%),linear-gradient(145deg,#162844,#07111f 72%)}
+@media(max-width:820px){.auth-actions{background:#0b162e}}
 
-/* Text on dark surfaces: avoid dim opacity and cover native controls, helper copy,
-   metadata, placeholders, and content that does not opt into a component hook. */
-.studio-dark-surface,
-.studio-dark-section,
-.creation-path-section,
-.creation-studio-header,
-.creation-studio-aside,
-.workflow-strip,
-.auth-dialog,
-footer{color:var(--studio-dark-body)}
-:where(.studio-dark-surface,.studio-dark-section,.creation-path-section,.creation-studio-header,.creation-studio-aside,.workflow-strip,.auth-dialog,footer) :where(h1,h2,h3,h4,h5,h6,strong,legend){color:var(--studio-dark-heading-bright);opacity:1}
-:where(.studio-dark-surface,.studio-dark-section,.creation-path-section,.creation-studio-header,.creation-studio-aside,.workflow-strip,.auth-dialog,footer) :where(p,li,dd,dt,label,small,span){opacity:1}
-.studio-dark-section .studio-dark-body,
-.studio-dark-section .workspace-intro p:not(.eyebrow),
-.studio-dark-section .section-heading p:not(.eyebrow){color:var(--studio-dark-body)!important;opacity:1!important}
-.studio-hero-copy .hero-lede,
-.module-workspace-hero>div>p:last-child,
-.module-activity-panel>p:not(.module-kicker),
-.module-placeholder-note small,
-.module-action-list small,
-.creation-heading-note p{color:var(--studio-dark-body)}
-.main-header .brand small,
-.main-header nav button,
-.studio-hero .trust-line,
-.studio-hero .hero-studio-proof small,
-.account-chip small,
-.auth-dialog label>span,
-.auth-local-note,
-.creation-studio-header .brand small,
-.studio-path-identity small,
-.creation-studio-aside>p:not(.eyebrow),
-.creation-studio-aside .studio-support,
-.creation-studio-aside blockquote p,
-.studio-progress li button,
-.studio-plan-summary small{color:var(--studio-dark-muted)!important}
-.auth-input input::placeholder{color:#c7c1b7;opacity:1}
-.auth-input button,.auth-close{color:var(--studio-dark-muted)}
-button:disabled{opacity:.72}
-.studio-dark-surface button:disabled,.studio-dark-section button:disabled{opacity:.82}
+/* Reusable semantic text and panel roles. */
+.studio-dark-heading,
+.studio-dark-section h1,
+.studio-dark-section h2{color:#fbf7ef!important;opacity:1!important;text-shadow:0 8px 24px rgba(0,0,0,.22)}
+.studio-dark-subheading,
+.studio-dark-section h3,
+.studio-dark-section h4{color:#f6f1e7!important;opacity:1!important;text-shadow:0 6px 18px rgba(0,0,0,.18)}
+.studio-dark-body,
+.studio-dark-section p:not(.eyebrow),
+.studio-dark-section li,
+.studio-dark-section small{color:#d9e2f1!important;opacity:.88!important}
+.studio-muted-on-dark{color:rgba(217,226,241,.76)!important;opacity:1!important}
+.studio-eyebrow,.studio-dark-section .eyebrow{color:#e0b968!important;opacity:1!important}
+.studio-text-button-on-dark{color:#e0b968!important;opacity:1!important}
+.studio-text-button-on-dark:hover,.studio-text-button-on-dark:focus-visible{color:#fbf7ef!important}
+.studio-readable-card-title{color:#fbf7ef!important;opacity:1!important}
+.studio-readable-card-body{color:#d9e2f1!important;opacity:.86!important}
+.studio-contrast-panel{border:1px solid rgba(224,185,104,.22);background:#0b162e;color:#d9e2f1;box-shadow:0 20px 55px rgba(0,0,0,.18)}
+.studio-contrast-link{color:#e0b968!important;text-decoration-color:rgba(224,185,104,.45)}
+.studio-contrast-link:hover,.studio-contrast-link:focus-visible{color:#fbf7ef!important}
+.studio-contrast-label{color:#f6f1e7!important;font-weight:700;opacity:1!important}
+.studio-dark-surface{color:var(--studio-dark-body)}
 
-/* Light paper surfaces need a darker muted role as well. */
+/* Guard every known dark surface against inherited navy text or dim headings. */
+:where(.studio-dark-surface,.studio-dark-section,.creation-path-section,.creation-studio-header,.creation-studio-aside,.workflow-strip,.auth-dialog,.module-action-list,.module-activity-panel,footer) :where(h1,h2,h3,h4,h5,h6,legend){color:var(--studio-dark-heading);opacity:1}
+:where(.studio-dark-surface,.studio-dark-section,.creation-path-section,.creation-studio-header,.creation-studio-aside,.workflow-strip,.auth-dialog,.module-action-list,.module-activity-panel,footer) :where(p,li,dd,dt,label,small){opacity:1}
+:where(.studio-dark-surface,.studio-dark-section,.creation-path-section,.creation-studio-header,.creation-studio-aside,.workflow-strip,.auth-dialog,.module-action-list,.module-activity-panel,footer) :where(.eyebrow,.editorial-label,.module-kicker){color:var(--studio-dark-gold);opacity:1}
+.studio-hero .hero-lede,.module-workspace-hero>div>p:last-child,.module-activity-panel>p:not(.module-kicker),.module-placeholder-note small,.module-action-list small,.creation-heading-note p{color:var(--studio-dark-body);opacity:1}
+.main-header .brand small,.main-header nav button,.studio-hero .trust-line,.studio-hero .hero-studio-proof small,.account-chip small,.auth-dialog label>span,.auth-local-note,.creation-studio-header .brand small,.studio-path-identity small,.creation-studio-aside>p:not(.eyebrow),.creation-studio-aside .studio-support,.creation-studio-aside blockquote p,.studio-progress li button,.studio-plan-summary small{color:var(--studio-dark-muted)!important;opacity:1!important}
+.main-header nav button:hover,.main-header nav button.active{color:#07111f!important;background:#fbf7ef}
+.workspace-section.studio-dark-section .workspace-intro h2,.workspace-section.studio-dark-section .manuscript-heading h3{color:var(--studio-dark-heading)!important;opacity:1!important}
+.workflow-strip .workflow-inner>span{color:var(--studio-dark-body)}
+.workflow-strip .workflow-inner>p{color:var(--studio-dark-gold)}
+.directory-heading h2,.module-workspace-hero h2{color:var(--studio-dark-heading)!important}
+.integrity-promise small,.module-action-list small,.module-placeholder-note small{color:var(--studio-dark-muted)!important}
+.studio-module-grid article>p:not(.eyebrow),.module-activity-panel>p:not(.module-kicker),.studio-module-grid ul,.module-activity-panel ul{color:var(--studio-dark-body)!important}
+.engineering-section .engineering-copy>p:not(.eyebrow),.engineering-section .system-stack article p{color:var(--studio-dark-body)}
+.engineering-section .system-stack article strong,footer .brand strong,footer .footer-inner p strong{color:var(--studio-dark-heading)}
+footer .brand small,footer .footer-inner p,footer .footer-inner>small{color:var(--studio-dark-muted);opacity:1}
+
+/* The final creation-path card is dark; all other path cards remain ivory paper. */
+.studio-readable-card-on-dark,.studio-readable-card-on-dark>strong{color:var(--studio-dark-heading)!important}
+.studio-readable-card-on-dark>p,.studio-readable-card-on-dark .path-best-for{color:var(--studio-dark-body)!important;opacity:1!important}
+.studio-readable-card-on-dark .path-output{color:var(--studio-dark-muted)!important;opacity:1!important}
+.studio-readable-card-on-dark>em{color:var(--studio-dark-gold)!important}
 :where(.premium-card,.paper-panel,.creation-path-card:not(:nth-child(7)),.creation-studio-main,.studio-form-panel,.studio-live-preview) :where(p,small,label,li,dd,dt){opacity:1}
-.creation-path-card:not(:nth-child(7))>p{color:#414852}
-.path-best-for,.path-output{color:#5d6470}
-.studio-section-header p,.studio-field>small,.path-field-grid label>small{color:#5f6670}
-.preview-intro p,.preview-confidence small{color:#606873}
+.creation-path-card:not(:nth-child(7))>p{color:#344154}
+.path-best-for,.path-output{color:#475569}
+.studio-section-header p,.studio-field>small,.path-field-grid label>small{color:#475569}
+.preview-intro p,.preview-confidence small{color:#475569}
+
+/* Wizard, preview, auth, module, and placeholder readability. */
+.creation-studio-header,.creation-studio-aside{color:var(--studio-dark-body)}
+.creation-studio-header .studio-brand strong,.creation-studio-aside h2,.studio-plan-summary strong,.preview-art span{color:var(--studio-dark-heading)}
+.studio-progress li em small{color:#cbd5e1}
+.studio-progress li.active button,.studio-progress li.done button{color:var(--studio-dark-heading)}
+.auth-heading>p:last-child{color:var(--studio-dark-body)}
+.auth-input input::placeholder{color:#cbd5e1;opacity:1}
+.auth-input button,.auth-close{color:var(--studio-dark-muted)}
+.auth-error,.studio-form-error{color:#ffdddd!important;background:rgba(146,35,35,.28);border-color:rgba(255,180,180,.55);opacity:1!important}
+.success-toast{color:#07111f;background:#d9fbe8;border-color:#71c99a}
+.quality-flags,.export-error{color:#6b1717;background:#fff0f0;border-color:#d98d8d}
+.readiness-blocked{color:#6b1717}.readiness-warning{color:#674b00}.readiness-ready{color:#155b39}
+:where(.auth-screen,.signup-screen,.signin-screen,.plan-selection-screen,.account-page-placeholder,.locked-feature-card,.upgrade-prompt,.studio-empty-state).studio-dark-surface :where(h1,h2,h3,h4){color:var(--studio-dark-heading);opacity:1}
+:where(.auth-screen,.signup-screen,.signin-screen,.plan-selection-screen,.account-page-placeholder,.locked-feature-card,.upgrade-prompt,.studio-empty-state).studio-dark-surface :where(p,small,label,li){color:var(--studio-dark-body);opacity:1}
+:where(.auth-screen,.signup-screen,.signin-screen,.plan-selection-screen,.account-page-placeholder,.locked-feature-card,.upgrade-prompt,.studio-empty-state).studio-dark-surface :where(.eyebrow,.plan-label,.upgrade-label){color:var(--studio-dark-gold);opacity:1}
+
+/* Keyboard, hover, and disabled-state accessibility. */
+:where(a,button,input,textarea,select,[tabindex]):focus-visible{outline:3px solid var(--studio-focus)!important;outline-offset:3px!important;box-shadow:0 0 0 2px #07111f!important}
+:where(a,button){-webkit-tap-highlight-color:rgba(224,185,104,.25)}
+:where(button,a):not(:disabled){transition:color .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+button:disabled,[aria-disabled="true"]{cursor:not-allowed;opacity:.72;filter:saturate(.72)}
+.studio-dark-surface button:disabled,.studio-dark-section button:disabled{opacity:.82;color:var(--studio-dark-muted);border-color:rgba(203,213,225,.34)}
+.auth-submit:disabled{opacity:.78;color:#07111f}
+.primary-button:hover:not(:disabled),.new-book-nav:hover:not(:disabled){background:#162844;border-color:#e0b968;color:#fbf7ef}
+.secondary-button:hover:not(:disabled){border-color:#c99a3d;background:#fbf7ef;color:#07111f}
+.auth-nav-button:hover:not(:disabled),.module-back-button:hover:not(:disabled){color:#fbf7ef;border-color:rgba(224,185,104,.55)}
+.studio-module-grid button:hover,.studio-module-grid button:focus-visible{color:#fbf7ef}
+.module-action-list>button:hover,.module-action-list>button.active,.module-action-list>button:focus-visible{border-color:rgba(224,185,104,.7);background:rgba(224,185,104,.11)}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
