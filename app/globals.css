@@ -686,3 +686,59 @@ html.auth-modal-open{overscroll-behavior:none}
    backgrounds. Keep normal copy fully opaque; reserve opacity for decoration. */
 .studio-dark-section :where(.studio-dark-body,p:not(.eyebrow),li,small),
 .studio-readable-card-body{opacity:1!important}
+
+/* Rendered contrast audit -----------------------------------------------------
+   Dark section wrappers contain a few intentionally light controls and cards.
+   Reset those islands explicitly so broad dark-surface roles cannot turn their
+   text ivory-on-white, while keeping section headings readable on navy. */
+.workspace-section.studio-dark-section .workspace-actions .secondary-button{
+  color:var(--studio-light-heading);
+}
+.workspace-section.studio-dark-section .book-card{
+  color:var(--studio-light-heading);
+}
+.workspace-section.studio-dark-section .book-card :where(.book-card-title,h1,h2,h3,h4,strong){
+  color:var(--studio-light-heading)!important;
+  text-shadow:none;
+}
+.workspace-section.studio-dark-section .book-card :where(.book-card-subtitle,.updated,.progress-label,.milestone-row,small,p){
+  color:var(--studio-light-muted)!important;
+  opacity:1!important;
+}
+.workspace-section.studio-dark-section .book-card .book-cover :where(strong){color:#fff!important}
+.workspace-section.studio-dark-section .book-card .book-cover :where(small,em){color:var(--studio-dark-body)!important}
+.templates-section .section-heading :where(h2){color:var(--studio-dark-heading)!important}
+.templates-section .section-heading :where(.eyebrow){color:var(--studio-dark-gold)!important}
+.templates-section .section-heading :where(p:not(.eyebrow)){color:var(--studio-dark-body)!important}
+
+/* Compact metadata, chips, and editor support copy still require 4.5:1 even
+   when their type is visually secondary or only eight pixels tall. */
+.outline-chips span,.theme-list span,
+.reassurance,
+.empty-page>p,.empty-page>small,
+.context-section>small,
+.publishing-metrics small,
+.permanent-delete-option small{
+  color:var(--studio-light-muted)!important;
+  opacity:1!important;
+}
+.chapter-nav button>span{color:var(--studio-light-accent)}
+.preview-modules article>span{color:var(--studio-light-accent)}
+.intelligence-card>span{color:var(--studio-light-body)}
+
+/* Disabled controls are still text users must be able to read. Preserve their
+   contrast and communicate state through cursor, borders, and fill instead of
+   fading the entire control. */
+button:disabled,[aria-disabled="true"]{opacity:1;filter:none}
+
+/* Account actions live inside the compact navigation on narrow screens. */
+.mobile-account-actions{display:none}
+@media(max-width:820px){
+  .header-auth-actions{display:none!important}
+  .mobile-account-actions{display:block;margin-top:8px;padding:14px;border-top:1px solid rgba(224,185,104,.24);color:var(--studio-dark-body)}
+  .mobile-account-actions>p{margin:0 0 12px;color:var(--studio-dark-body);font-size:11px;line-height:1.55}
+  .mobile-account-actions>div{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .mobile-account-actions .auth-nav-button{width:100%;min-height:42px}
+  .mobile-account-chip{display:flex;align-items:center;gap:9px;margin-bottom:10px;color:var(--studio-dark-heading);font-size:11px;font-weight:800}
+  .mobile-account-chip small{display:block;color:var(--studio-dark-muted);font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+}
