@@ -13,22 +13,25 @@ const requiredRoles = [
   "studio-text-button-on-dark",
   "studio-readable-card-title",
   "studio-readable-card-body",
+  "studio-contrast-panel",
+  "studio-contrast-link",
+  "studio-contrast-label",
 ];
 
 test("dark-surface typography roles remain available", () => {
   for (const role of requiredRoles) assert.match(css, new RegExp(`\\.${role}\\b`));
 });
 
-test("the final dark-surface palette uses neutral, high-contrast colors", () => {
+test("the final dark-surface palette uses the approved navy, ivory, and gold colors", () => {
   const finalPalette = css.slice(css.lastIndexOf(":root{"));
-  assert.match(finalPalette, /--deep-ink:#12110f/);
-  assert.match(finalPalette, /--midnight-navy:#181613/);
-  assert.match(finalPalette, /--rich-navy:#24211d/);
-  assert.match(finalPalette, /--studio-dark-heading:#fffdf8/);
-  assert.match(finalPalette, /--studio-dark-heading-bright:#ffffff/);
-  assert.match(finalPalette, /--studio-dark-body:#eeeae2/);
-  assert.match(finalPalette, /--studio-dark-muted:#d6d0c6/);
-  assert.match(finalPalette, /--studio-dark-gold:#f0c979/);
+  assert.match(finalPalette, /--deep-ink:#07111f/);
+  assert.match(finalPalette, /--midnight-navy:#0b162e/);
+  assert.match(finalPalette, /--rich-navy:#162844/);
+  assert.match(finalPalette, /--studio-dark-heading:#fbf7ef/);
+  assert.match(finalPalette, /--studio-dark-heading-bright:#f6f1e7/);
+  assert.match(finalPalette, /--studio-dark-body:#d9e2f1/);
+  assert.match(finalPalette, /--studio-dark-muted:#cbd5e1/);
+  assert.match(finalPalette, /--studio-dark-gold:#e0b968/);
 });
 
 test("auth, plan, account, locked, upgrade, and empty-state hooks share the contrast contract", () => {
@@ -52,9 +55,9 @@ function contrast(foreground: string, background: string) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-test("approved dark-surface text colors meet WCAG AA against neutral ink surfaces", () => {
-  for (const background of ["#12110f", "#181613", "#24211d", "#171512"]) {
-    for (const foreground of ["#fffdf8", "#ffffff", "#eeeae2", "#d6d0c6", "#f0c979"]) {
+test("approved dark-surface text colors meet WCAG AA against midnight navy surfaces", () => {
+  for (const background of ["#07111f", "#0b162e", "#162844"]) {
+    for (const foreground of ["#fbf7ef", "#f6f1e7", "#d9e2f1", "#cbd5e1", "#e0b968"]) {
       assert.ok(contrast(foreground, background) >= 4.5, `${foreground} must remain readable on ${background}`);
     }
   }

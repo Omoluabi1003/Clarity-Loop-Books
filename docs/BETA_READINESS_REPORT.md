@@ -69,3 +69,33 @@ The QA suite validates:
 4. Add Playwright end-to-end coverage for create, refresh/resume, edit, readiness gate, export download, and feedback submission.
 5. Add editorial evaluation fixtures for repetition, depth, factual grounding, opening variety, and professional nonfiction structure.
 6. Add observability, structured error correlation IDs, rate limiting, backups, privacy controls, and beta support runbooks.
+
+## Contrast, accessibility, and no-payment beta audit — June 11, 2026
+
+### Status
+
+**Ready for a controlled browser-local beta without payment processing.** The final UI token layer now uses the approved midnight navy (`#07111F`, `#0B162E`, `#162844`), ivory (`#FBF7EF`, `#F6F1E7`), slate (`#D9E2F1`, `#CBD5E1`), and warm gold (`#E0B968`) roles. The off-brand neutral/brown override was removed.
+
+### Surfaces audited
+
+- Landing hero, header navigation, workflow strip, dashboard, My Books, Books in Progress, empty chapter state, and footer.
+- Seven creation-path cards, all seven tailored creation wizards, progress sidebar, form helper copy, live preview, production controls, and disabled actions.
+- Specialized module directory, every Explore Module action, module placeholder workspaces, locked/placeholder messaging hooks, and Publishing Center export UI.
+- Sign-up, sign-in, sign-out, account chip, validation errors, success toast, delete modal, feedback panel, blueprint, chapter studio, and export readiness states.
+- Desktop (`1440 × 1000`) and mobile (`390 × 844`) browser layouts.
+
+### Interaction results
+
+- New Book, Create New Book, Begin a new book, and all seven creation-path cards opened the creation workflow.
+- All five Explore Module buttons opened their real placeholder workspace; every module action changed the active panel.
+- Browser-local sign-up, sign-out, and sign-in completed successfully.
+- Mobile navigation exposed the account controls correctly.
+- Browser QA recorded no page or console errors.
+- The current beta does not mount paid plan selection, checkout, card fields, or payment-gated modules. Plan/upgrade/locked-card semantic hooks retain the same contrast contract for future use, but monetization remains intentionally deferred.
+
+### Remaining risks
+
+- Accounts and project data remain browser-local and are not suitable for a public multi-device launch.
+- Automated browser QA is a focused smoke pass rather than a committed end-to-end Playwright suite.
+- Paid plan selection and free-preview entitlement gating are intentionally outside this no-payment beta; they require separate product and security review before monetization.
+- Dependency audit reports upstream package advisories that should be evaluated before a public release.

@@ -100,7 +100,7 @@ export function StudioDirectory() {
             </div>
 
             <div className="module-workspace-grid">
-              <div className="module-action-list">
+              <div className="module-action-list studio-contrast-panel">
                 <p className="module-kicker">Choose a starting action</p>
                 {details.actions.map(([label, description], index) => (
                   <button
@@ -117,14 +117,14 @@ export function StudioDirectory() {
                 ))}
               </div>
 
-              <aside className="module-activity-panel">
+              <aside className="module-activity-panel studio-contrast-panel">
                 <p className="module-kicker">Active workspace</p>
                 {selectedAction ? (
                   <>
                     <span className="activity-mark"><CheckCircle2 size={22} /></span>
                     <h3 className="studio-readable-card-title">{selectedAction}</h3>
                     <p>{details.actions.find(([label]) => label === selectedAction)?.[1]}</p>
-                    <div className="module-placeholder-note">
+                    <div className="module-placeholder-note locked-feature-card">
                       <ShieldCheck size={17} />
                       <span><strong>Project-safe placeholder</strong><small>This workspace is connected and ready for the next production release. Your current studio record remains intact.</small></span>
                     </div>
