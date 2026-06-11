@@ -766,6 +766,6 @@ button:disabled,[aria-disabled="true"]{opacity:1;filter:none}
 
 /* Authentication access gate ------------------------------------------------ */
 .auth-gate-shell{min-height:100vh;background:var(--deep-ink)}
-.auth-gated-content{min-height:100vh;transition:filter .2s ease,transform .2s ease}
+.auth-gated-content{min-height:100vh;transition:transform .2s ease}
 .auth-gated-content.is-locked{pointer-events:none;user-select:none;filter:blur(10px);transform:scale(1.01)}
 @media(prefers-reduced-motion:reduce){.auth-gated-content{transition:none}}
