@@ -19,12 +19,16 @@ test("dark-surface typography roles remain available", () => {
   for (const role of requiredRoles) assert.match(css, new RegExp(`\\.${role}\\b`));
 });
 
-test("dark-surface typography uses approved palette colors", () => {
-  assert.match(css, /--studio-dark-heading:#f6f1e7/);
-  assert.match(css, /--studio-dark-heading-bright:#fbf7ef/);
-  assert.match(css, /--studio-dark-body:#d9e2f1/);
-  assert.match(css, /--studio-dark-muted:#cbd5e1/);
-  assert.match(css, /--studio-dark-gold:#e0b968/);
+test("the final dark-surface palette uses neutral, high-contrast colors", () => {
+  const finalPalette = css.slice(css.lastIndexOf(":root{"));
+  assert.match(finalPalette, /--deep-ink:#12110f/);
+  assert.match(finalPalette, /--midnight-navy:#181613/);
+  assert.match(finalPalette, /--rich-navy:#24211d/);
+  assert.match(finalPalette, /--studio-dark-heading:#fffdf8/);
+  assert.match(finalPalette, /--studio-dark-heading-bright:#ffffff/);
+  assert.match(finalPalette, /--studio-dark-body:#eeeae2/);
+  assert.match(finalPalette, /--studio-dark-muted:#d6d0c6/);
+  assert.match(finalPalette, /--studio-dark-gold:#f0c979/);
 });
 
 test("auth, plan, account, locked, upgrade, and empty-state hooks share the contrast contract", () => {
@@ -48,9 +52,9 @@ function contrast(foreground: string, background: string) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-test("approved dark-surface text colors meet WCAG AA against studio navies", () => {
-  for (const background of ["#07111f", "#0b162e", "#101d35", "#162844"]) {
-    for (const foreground of ["#f6f1e7", "#fbf7ef", "#d9e2f1", "#cbd5e1", "#e0b968"]) {
+test("approved dark-surface text colors meet WCAG AA against neutral ink surfaces", () => {
+  for (const background of ["#12110f", "#181613", "#24211d", "#171512"]) {
+    for (const foreground of ["#fffdf8", "#ffffff", "#eeeae2", "#d6d0c6", "#f0c979"]) {
       assert.ok(contrast(foreground, background) >= 4.5, `${foreground} must remain readable on ${background}`);
     }
   }
