@@ -25,17 +25,17 @@ const icons = {
 
 export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPathId) => void }) {
   return (
-    <section className="creation-path-section" id="create">
+    <section className="creation-path-section studio-dark-surface" id="create">
       <div className="creation-path-ambient" aria-hidden="true" />
       <div className="page-shell">
         <div className="creation-path-heading">
           <div>
-            <p className="eyebrow"><Sparkles size={13} /> THE CREATION ATELIER</p>
-            <h2>Seven distinct rooms.<br /><em>One ambitious studio.</em></h2>
+            <p className="eyebrow studio-eyebrow"><Sparkles size={13} /> THE CREATION ATELIER</p>
+            <h2 className="studio-dark-heading">Seven distinct rooms.<br /><em>One ambitious studio.</em></h2>
           </div>
           <div className="creation-heading-note">
             <span>Choose by starting point</span>
-            <p>Every room has its own questions, creative logic, and production promise—because a novel should never begin like a publishing pack.</p>
+            <p className="studio-dark-body">Every room has its own questions, creative logic, and production promise—because a novel should never begin like a publishing pack.</p>
           </div>
         </div>
         <div className="creation-path-grid">
@@ -44,7 +44,7 @@ export function CreationPathSelector({ onSelect }: { onSelect: (path: CreationPa
             return (
               <motion.button
                 key={path.id}
-                className={`creation-path-card premium-card path-card accent-${path.accent}`}
+                className={`creation-path-card premium-card path-card accent-${path.accent}${index === CREATION_PATHS.length - 1 ? " studio-readable-card-on-dark" : ""}`}
                 onClick={() => onSelect(path.id)}
                 type="button"
                 aria-label={`Enter ${path.label}: ${path.bestFor}`}

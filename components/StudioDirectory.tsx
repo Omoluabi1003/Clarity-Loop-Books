@@ -82,7 +82,7 @@ export function StudioDirectory() {
   };
 
   return (
-    <section className="studio-directory" id="specialized-studios" aria-label="Specialized publishing studios">
+    <section className="studio-directory studio-dark-surface" id="specialized-studios" aria-label="Specialized publishing studios">
       <div className="page-shell">
         {selectedStudio && details ? (
           <div className="module-workspace" aria-live="polite">
@@ -93,8 +93,8 @@ export function StudioDirectory() {
               <span className="module-workspace-icon"><details.icon size={28} /></span>
               <div>
                 <p className="eyebrow"><Sparkles size={13} /> {selectedStudio.eyebrow}</p>
-                <h2>{selectedStudio.title}</h2>
-                <p>{details.purpose}</p>
+                <h2 className="studio-dark-heading">{selectedStudio.title}</h2>
+                <p className="studio-dark-body">{details.purpose}</p>
               </div>
               <span className="module-status"><i /> Workspace ready</span>
             </div>
@@ -122,7 +122,7 @@ export function StudioDirectory() {
                 {selectedAction ? (
                   <>
                     <span className="activity-mark"><CheckCircle2 size={22} /></span>
-                    <h3>{selectedAction}</h3>
+                    <h3 className="studio-readable-card-title">{selectedAction}</h3>
                     <p>{details.actions.find(([label]) => label === selectedAction)?.[1]}</p>
                     <div className="module-placeholder-note">
                       <ShieldCheck size={17} />
@@ -132,7 +132,7 @@ export function StudioDirectory() {
                 ) : (
                   <>
                     <span className="activity-mark"><details.icon size={22} /></span>
-                    <h3>Your {selectedStudio.title} desk</h3>
+                    <h3 className="studio-readable-card-title">Your {selectedStudio.title} desk</h3>
                     <p>Select an action to open its focused setup panel. Nothing here is decorative or disconnected.</p>
                     <ul>{selectedStudio.outputs.map((output) => <li key={output}><CheckCircle2 size={13} /> {output}</li>)}</ul>
                   </>
@@ -143,18 +143,18 @@ export function StudioDirectory() {
         ) : (
           <>
             <div className="directory-heading">
-              <div><p className="eyebrow">THE PUBLISHING OPERATING SYSTEM</p><h2 id="studio-directory-title">Specialized studios, one creative record.</h2></div>
+              <div><p className="eyebrow">THE PUBLISHING OPERATING SYSTEM</p><h2 className="studio-dark-heading" id="studio-directory-title">Specialized studios, one creative record.</h2></div>
               <div className="integrity-promise"><ShieldCheck size={22}/><span><strong>Content Integrity Gate</strong><small>Clean words—not padded words—determine readiness.</small></span></div>
             </div>
             <div className="studio-module-grid">
               {STUDIO_MODULES.map((item) => (
                 <article key={item.id}>
                   <p className="eyebrow">{item.eyebrow}</p>
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
+                  <h3 className="studio-readable-card-title">{item.title}</h3>
+                  <p className="studio-readable-card-body">{item.description}</p>
                   <ul>{item.outputs.map((output) => <li key={output}><CheckCircle2 size={13}/>{output}</li>)}</ul>
                   <button type="button" onClick={() => openModule(item.id)} aria-label={`Explore ${item.title}`}>
-                    Explore module <ArrowUpRight size={14}/>
+                    <span className="studio-text-button-on-dark">Explore module</span> <ArrowUpRight size={14}/>
                   </button>
                 </article>
               ))}
