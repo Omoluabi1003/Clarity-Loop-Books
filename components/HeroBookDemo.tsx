@@ -1,6 +1,5 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
 import {
   BookCheck,
   BookOpenText,
@@ -22,17 +21,15 @@ const stages = [
 ];
 
 export function HeroBookDemo({ onStart }: { onStart: () => void }) {
-  const reduceMotion = useReducedMotion();
   const [activeStage, setActiveStage] = useState(0);
   const [title, setTitle] = useState("The Courage to Begin");
 
   useEffect(() => {
-    if (reduceMotion) return;
     const timer = window.setInterval(() => {
       setActiveStage((current) => (current + 1) % stages.length);
     }, 2600);
     return () => window.clearInterval(timer);
-  }, [reduceMotion]);
+  }, []);
 
   const advance = () => setActiveStage((current) => Math.min(current + 1, stages.length - 1));
 

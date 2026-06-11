@@ -53,10 +53,12 @@ test("signed-out visitors can browse until a studio action opens the blurred aut
   assert.match(authDialog, /dismissible && event\.target === event\.currentTarget/);
 });
 
-test("the live demo does not wait on animation callbacks before mounting its next stage", () => {
-  assert.doesNotMatch(heroDemo, /AnimatePresence|motion\./);
+test("the live demo advances on iOS without waiting on animation callbacks", () => {
+  assert.doesNotMatch(heroDemo, /AnimatePresence|motion\.|useReducedMotion/);
+  assert.match(heroDemo, /window\.setInterval\(\(\) => \{[\s\S]*?setActiveStage/);
+  assert.match(heroDemo, /\}, 2600\);[\s\S]*?\}, \[\]\);/);
   assert.match(heroDemo, /className="demo-stage-content" key=\{activeStage\}/);
-  assert.match(css, /\.demo-stage-content\{[^}]*animation:demoStageEnter[^}]*will-change:transform/);
+  assert.match(css, /\.demo-stage-content\{height:100%\}/);
+  assert.match(css, /@media\(prefers-reduced-motion:no-preference\)\{[\s\S]*?\.demo-stage-content\{animation:demoStageEnter[^}]*will-change:transform/);
   assert.match(css, /@keyframes demoStageEnter\{from\{transform:translate3d\(0,12px,0\)\}to\{transform:translate3d\(0,0,0\)\}\}/);
-  assert.match(css, /@media\(prefers-reduced-motion:reduce\)\{\.demo-stage-content,\.demo-chapters>div\{animation:none/);
 });
