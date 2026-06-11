@@ -585,3 +585,45 @@ button:disabled,[aria-disabled="true"]{cursor:not-allowed;opacity:.72;filter:sat
 .studio-module-grid button:hover,.studio-module-grid button:focus-visible{color:#fbf7ef}
 .module-action-list>button:hover,.module-action-list>button.active,.module-action-list>button:focus-visible{border-color:rgba(224,185,104,.7);background:rgba(224,185,104,.11)}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+
+/* Mobile viewport and modal containment ---------------------------------------
+   Keep every studio surface inside the device width, and let long account
+   forms scroll within the visual viewport when browser chrome or a keyboard
+   reduces the available height. */
+html,body{max-width:100%;overflow-x:clip}
+img,svg{max-width:100%}
+.app-shell{width:100%;min-width:0;overflow-x:clip}
+html.auth-modal-open{overscroll-behavior:none}
+.auth-overlay{min-height:100vh;min-height:100dvh;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left))}
+.auth-dialog{flex:0 0 auto;max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px)}
+
+@media(max-width:820px){
+  .page-shell{width:calc(100% - 32px)}
+  .auth-overlay{display:flex;align-items:flex-start;justify-content:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+  .auth-dialog{width:100%;max-height:none;margin:auto;padding:28px 20px;border-radius:14px}
+  .auth-brand{margin-bottom:24px;padding-right:44px}
+  .auth-heading h2{font-size:clamp(27px,9vw,34px)}
+  .auth-heading>p:last-child{line-height:1.55}
+  .auth-dialog form{gap:14px;margin-top:24px}
+  .auth-input,.auth-submit{min-height:48px}
+  .auth-switch{margin-top:20px}
+  .auth-local-note{margin-top:20px;padding-top:17px}
+}
+
+@media(max-width:380px){
+  .main-header .brand>span:last-child{display:none}
+  .main-header .new-book-nav{width:42px;padding:0;font-size:0}
+  .main-header .new-book-nav svg{width:17px;height:17px}
+  .auth-actions{right:16px;width:calc(100vw - 32px)}
+  .auth-dialog{padding:24px 16px}
+}
+
+@media(max-height:620px) and (max-width:820px){
+  .auth-brand{margin-bottom:18px}
+  .auth-icon{display:none}
+  .auth-heading h2{font-size:27px}
+  .auth-heading>p:last-child{margin-top:8px}
+  .auth-dialog form{gap:11px;margin-top:18px}
+  .auth-input,.auth-submit{min-height:44px}
+}
