@@ -24,6 +24,7 @@ Clarity Loop is designed for authors, coaches, pastors, consultants, speakers, c
 - An Export Center with valid PDF and DOCX downloads plus publishing assets such as book descriptions, back-cover copy, author bios, keywords, and category suggestions
 - Dedicated Book DNA, consistency, publishing pipeline, and multi-format export showcases engineered by ETL GIS Consulting LLC
 - Six starting templates: Self-Help, Christian Devotional, Memoir, Business Book, Biography, and Children’s Book
+- Browser-local beta accounts with create-account, sign-in, persistent-session, and sign-out controls; passwords are stored as PBKDF2-derived hashes rather than plaintext
 - Versioned browser-local project persistence with 15-second autosave, immediate edit saves, legacy migration, export history, and beta feedback capture
 - Deterministic API fallbacks so the complete experience works without external credentials
 
@@ -72,7 +73,7 @@ npm run build
 
 Before a hosted release, connect the existing integration points to:
 
-1. Authentication and a persistent database using the `Book` and `Chapter` structures in `lib/types.ts`.
+1. Replace the browser-local beta account layer with production authentication and a persistent database using the `Book` and `Chapter` structures in `lib/types.ts`.
 2. A production AI provider in `app/api/blueprint/route.ts` and `app/api/chapter/route.ts`.
 3. Hosted object storage for generated PDF/DOCX artifacts and the export-history URLs. PDF and DOCX are already rendered as valid files by the server export route; EPUB remains a future format.
 4. Stripe plans for Free, Pro, and Publisher tiers.
@@ -99,5 +100,6 @@ python generate_covers.py
 - `lib/export-renderers.ts` creates real multi-page PDF files and valid DOCX ZIP packages with headings and chapter page breaks.
 - `lib/quality.ts` normalizes paragraph casing and reports duplicate openings, duplicate paragraphs, broken Markdown, orphan headings, empty sections, and underdeveloped chapters.
 - `lib/persistence.ts` defines the versioned saved-state contract for books and beta feedback.
+- `lib/auth.ts` defines the browser-local beta account, password-derivation, and session contract.
 
 Browser-local persistence is appropriate for controlled single-browser beta evaluation, but it is not a substitute for authenticated server-side storage, cross-device synchronization, backups, and conflict handling. Those remain required before public monetization.
