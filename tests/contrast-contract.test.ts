@@ -140,3 +140,38 @@ test("every live-demo stage explicitly uses readable text colors", () => {
   ]) assert.match(baseline, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(baseline, /\.hero-demo :where\(p,small,span,strong,label,button,h3\)\{opacity:1\}/);
 });
+
+test("light surfaces isolate headings from dark ancestor foreground rules", () => {
+  const isolation = css.slice(css.indexOf("/* Light-surface isolation"));
+  for (const surface of [
+    "hero-demo",
+    "book-card",
+    "template-card",
+    "method-section",
+    "publishing-pack-card",
+    "final-cta",
+    "creation-studio-main",
+    "studio-form-panel",
+    "book-identity-card",
+    "studio-page",
+    "paper-editor",
+    "studio-live-preview",
+    "feedback-panel",
+    "delete-draft-modal",
+    "export-modal",
+    "success-main",
+  ]) assert.match(isolation, new RegExp(`\\.${surface}\\b`));
+
+  assert.match(isolation, /:where\(h1,h2,h3,h4,h5,h6,legend\)\{[\s\S]*?color:var\(--studio-light-heading\)!important/);
+  assert.match(isolation, /text-shadow:none!important/);
+  for (const darkIsland of ["book-cover", "mini-book-cover", "readiness-card", "featured-plan", "studio-plan-summary", "wizard-aside"]) {
+    assert.match(isolation, new RegExp(`\\.${darkIsland}\\b`));
+  }
+});
+
+test("the live demo title has a guaranteed dark foreground on its paper stage", () => {
+  const isolation = css.slice(css.indexOf("/* Light-surface isolation"));
+  assert.match(isolation, /\.hero-demo/);
+  assert.match(isolation, /color:var\(--studio-light-heading\)!important/);
+  assert.ok(contrast("#07111f", "#fffefa") >= 4.5);
+});
