@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const heroDemo = readFileSync(new URL("../components/HeroBookDemo.tsx", import.meta.url), "utf8");
 
 const requiredRoles = [
   "studio-dark-heading",
@@ -23,7 +24,7 @@ test("dark-surface typography roles remain available", () => {
 });
 
 test("the final dark-surface palette uses the approved navy, ivory, and gold colors", () => {
-  const finalPalette = css.slice(css.lastIndexOf(":root{"));
+  const finalPalette = css.slice(css.indexOf("/* Beta contrast and accessibility contract"));
   assert.match(finalPalette, /--deep-ink:#07111f/);
   assert.match(finalPalette, /--midnight-navy:#0b162e/);
   assert.match(finalPalette, /--rich-navy:#162844/);
@@ -61,4 +62,37 @@ test("approved dark-surface text colors meet WCAG AA against midnight navy surfa
       assert.ok(contrast(foreground, background) >= 4.5, `${foreground} must remain readable on ${background}`);
     }
   }
+});
+
+test("approved light-surface text colors meet WCAG AA on every paper surface", () => {
+  for (const background of ["#fffefa", "#fbfaf6", "#f4f0e8"]) {
+    for (const foreground of ["#07111f", "#344154", "#5d6673", "#636c77", "#8a5f17"]) {
+      assert.ok(contrast(foreground, background) >= 4.5, `${foreground} must remain readable on ${background}`);
+    }
+  }
+});
+
+test("the website-wide audit scopes accessible foregrounds to all major light surfaces", () => {
+  const audit = css.slice(css.lastIndexOf("/* Website-wide foreground audit"));
+  for (const surface of [
+    "hero-demo",
+    "method-section",
+    "templates-section",
+    "publishing-pack-card",
+    "final-cta",
+    "studio-page",
+    "creation-studio-main",
+    "studio-live-preview",
+    "feedback-panel",
+    "delete-draft-modal",
+    "export-modal",
+  ]) assert.match(audit, new RegExp(`\\.${surface}\\b`));
+  assert.match(audit, /--studio-light-muted:#5d6673/);
+  assert.match(audit, /--studio-light-accent:#8a5f17/);
+});
+
+
+test("hero demo transitions never fade readable content below full opacity", () => {
+  assert.doesNotMatch(heroDemo, /initial=\{\{[^}]*opacity:\s*0/);
+  assert.doesNotMatch(heroDemo, /exit=\{\{[^}]*opacity:\s*0/);
 });

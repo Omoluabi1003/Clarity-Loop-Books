@@ -627,3 +627,62 @@ html.auth-modal-open{overscroll-behavior:none}
   .auth-dialog form{gap:11px;margin-top:18px}
   .auth-input,.auth-submit{min-height:44px}
 }
+
+/* Website-wide foreground audit ------------------------------------------------
+   Light paper surfaces use their own ink scale instead of inheriting colors
+   designed for the midnight canvas. These values stay above WCAG AA on the
+   warmest paper background used by the product (#f4f0e8). */
+:root{
+  --studio-light-muted:#5d6673;
+  --studio-light-subtle:#636c77;
+  --studio-light-accent:#8a5f17;
+  --studio-light-success:#245c48;
+}
+
+/* Scope legacy accent variables to light surfaces. Gold that reads clearly on
+   navy is intentionally different from the darker bronze used on paper. */
+:where(.hero-demo,.method-section,.templates-section,.publishing-pack-card,.final-cta,.studio-page,.creation-studio-main,.studio-live-preview,.feedback-panel,.delete-draft-modal,.export-modal){
+  --gold:var(--studio-light-accent);
+  --muted:var(--studio-light-muted);
+  --green:var(--studio-light-success);
+}
+
+/* Interactive hero demo: inactive stages and supporting copy must remain
+   readable, not just the currently selected step. */
+.demo-window-bar,.demo-live,.demo-progress button,.demo-idea small,.demo-export>small,
+.manuscript-count span,.demo-caption p{color:var(--studio-light-muted)}
+.demo-progress button.complete,.demo-chapters strong{color:var(--studio-light-heading)}
+.demo-progress button.complete span{color:#fff}
+.demo-chapters span,.demo-section-label,.demo-caption span{color:var(--studio-light-accent)}
+.demo-synopsis p,.mini-pages p{color:var(--studio-light-body)}
+
+/* Dashboard, templates, and marketing paper sections. */
+.book-card-subtitle,.updated,.progress-label,.milestone-row,
+.template-card p,.method-heading>p:last-child,.method-steps p,
+.pack-copy>p:not(.eyebrow),.pack-assets small,
+.final-cta>div>p:not(.eyebrow),.final-cta small{color:var(--studio-light-muted)}
+.card-kicker,.template-card small,.method-section .eyebrow,
+.publishing-pack-card .eyebrow,.final-cta .eyebrow{color:var(--studio-light-accent)}
+.pack-status span{color:var(--studio-light-success)!important}
+
+/* Blueprint, manuscript editor, modals, and feedback controls. */
+.studio-title span,.blueprint-stats small,.toc-heading>span,
+.chapter-plan-list article>small,.chapter-nav-label,.chapter-nav em small,
+.chapter-position,.paper-meta,.export-options small,.export-note,
+.feedback-panel>small,.delete-draft-modal>p:not(.eyebrow),
+.cover-studio-card>div:last-child>p:not(.eyebrow){color:var(--studio-light-muted)}
+.chapter-plan-list textarea,.chapter-brief p,.chapter-context>p:not(.eyebrow),
+.dna-item p,.dna-item ul{color:var(--studio-light-body)}
+.chapter-number,.dna-item small,.blueprint-link,.export-options em{color:var(--studio-light-accent)}
+
+/* Creation workflow form and live preview. */
+.path-field-grid label>span b,.studio-field>span b,.preview-header span,
+.preview-intro>small,.preview-modules small{color:var(--studio-light-accent)}
+.path-field-grid label>small,.studio-field>small,.studio-section-header p,
+.preview-intro p,.preview-confidence small,.preview-header small{color:var(--studio-light-muted)}
+.preview-modules p{color:var(--studio-light-body)}
+
+/* Text opacity compounds otherwise valid foreground colors with their
+   backgrounds. Keep normal copy fully opaque; reserve opacity for decoration. */
+.studio-dark-section :where(.studio-dark-body,p:not(.eyebrow),li,small),
+.studio-readable-card-body{opacity:1!important}
