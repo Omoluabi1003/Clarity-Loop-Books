@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import logo from "../CL AI Logo.png";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -14,6 +15,10 @@ export const metadata: Metadata = {
   authors: [{ name: "ETL GIS Consulting LLC" }],
   creator: "ETL GIS Consulting LLC",
   publisher: "ETL GIS Consulting LLC",
+  icons: {
+    icon: [{ url: logo.src, type: "image/png" }],
+    apple: [{ url: logo.src, type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
