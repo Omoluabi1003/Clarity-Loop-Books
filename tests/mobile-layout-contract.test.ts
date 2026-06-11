@@ -38,12 +38,15 @@ test("sign in and sign up remain available inside mobile navigation", () => {
   assert.match(css, /\.header-auth-actions\{display:none!important\}/);
 });
 
-test("signed-out visitors are immediately blocked by a non-dismissible blurred auth gate", () => {
-  assert.match(bookStudio, /useState<AuthMode \| null>\("signin"\)/);
-  assert.match(bookStudio, /authenticationRequired = !authUser/);
+test("signed-out visitors can browse until a studio action opens the blurred auth gate", () => {
+  assert.match(bookStudio, /useState<AuthMode \| null>\(null\)/);
+  assert.match(bookStudio, /const requireAuthentication = \(action: \(\) => void\) =>/);
+  assert.match(bookStudio, /if \(!authUser\) \{[\s\S]*?setAuthMode\(accounts\.length \? "signin" : "signup"\)/);
+  assert.match(bookStudio, /const authenticationRequired = !authUser && authMode !== null/);
   assert.match(bookStudio, /dismissible=\{false\}/);
   assert.match(bookStudio, /className=\{`auth-gated-content\$\{authenticationRequired \? " is-locked" : ""\}`\}/);
   assert.match(css, /\.auth-gated-content\.is-locked\{[^}]*pointer-events:none[^}]*filter:blur\(10px\)/);
+  assert.doesNotMatch(css, /\.auth-gated-content\{[^}]*transition:[^}]*filter/);
   assert.match(authDialog, /dismissible && event\.key === "Escape"/);
   assert.match(authDialog, /dismissible && event\.target === event\.currentTarget/);
 });
