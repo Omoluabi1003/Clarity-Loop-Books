@@ -1,10 +1,11 @@
 "use client";
 
-import { BookOpenText, CircleHelp, Menu, PenLine, Sparkles, X } from "lucide-react";
+import { BookOpenText, CircleHelp, LogIn, LogOut, Menu, PenLine, Sparkles, UserPlus, UserRound, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateBookBudget, recalculateBook } from "@/lib/book-budget";
 import { deleteBookFromState, LEGACY_STORAGE_KEYS, parseStudioState, serializeStudioState, STORAGE_KEY } from "@/lib/persistence";
 import { generateCoverPrompt } from "@/lib/ai";
+import { AUTH_ACCOUNTS_KEY, AUTH_SESSION_KEY, parseAccounts, parseSession, serializeSession, type AuthUser, type StoredAccount } from "@/lib/auth";
 import { sampleBooks } from "@/lib/templates";
 import type { BetaFeedback, Book, BookForm, BookTemplate, CreationPathId, ExportFormat } from "@/lib/types";
 import { AuthorWorkspace } from "./AuthorWorkspace";
@@ -14,8 +15,10 @@ import { ChapterStudio } from "./ChapterStudio";
 import { ExportCenter } from "./ExportCenter";
 import { NewBookWizard } from "./NewBookWizard";
 import { DeleteDraftModal } from "./DeleteDraftModal";
+import { AuthDialog } from "./AuthDialog";
 
 type View = "workspace" | "blueprint" | "chapters";
+type AuthMode = "signin" | "signup";
 
 function hydrateBook(raw: Book): Book {
   const wordsPerPage = raw.wordsPerPage || 275;
@@ -56,6 +59,9 @@ export function BookStudio() {
   const [lastSaved, setLastSaved] = useState("Not saved yet");
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
   const [toast, setToast] = useState("");
+  const [accounts, setAccounts] = useState<StoredAccount[]>([]);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authMode, setAuthMode] = useState<AuthMode | null>(null);
   const booksRef = useRef(books);
   const feedbackRef = useRef(feedback);
   const storageReady = useRef(false);
@@ -70,6 +76,9 @@ export function BookStudio() {
         try { const state = parseStudioState(saved); setBooks(state.books.map(hydrateBook)); setFeedback(state.feedback); }
         catch { console.warn("Saved projects could not be loaded; starter data remains available."); }
       }
+      const savedAccounts = parseAccounts(localStorage.getItem(AUTH_ACCOUNTS_KEY));
+      setAccounts(savedAccounts);
+      setAuthUser(parseSession(localStorage.getItem(AUTH_SESSION_KEY), savedAccounts));
       storageReady.current = true;
     }, 0);
     return () => window.clearTimeout(timer);
@@ -138,9 +147,26 @@ export function BookStudio() {
   const submitFeedback = (entry: BetaFeedback) => { const next = [entry, ...feedbackRef.current]; feedbackRef.current = next; setFeedback(next); localStorage.setItem(STORAGE_KEY, serializeStudioState(booksRef.current, next)); };
   const recordExport = (format: ExportFormat) => { if (!activeBook) return; updateBook({ ...activeBook, status: "exported", exportHistory: [{ id: `export-${Date.now()}`, bookId: activeBook.id, format, status: "completed", fileUrl: "browser-download", errorMessage: "", createdAt: new Date().toISOString() }, ...(activeBook.exportHistory || [])] }); };
   const goWorkspace = () => { saveNow(); setView("workspace"); setActiveBookId(null); setExportOpen(false); };
+  const finishAuthentication = (user: AuthUser, nextAccounts: StoredAccount[]) => {
+    localStorage.setItem(AUTH_ACCOUNTS_KEY, JSON.stringify(nextAccounts));
+    localStorage.setItem(AUTH_SESSION_KEY, serializeSession(user));
+    setAccounts(nextAccounts);
+    setAuthUser(user);
+    setAuthMode(null);
+    setToast(`Welcome${user.name ? `, ${user.name.split(" ")[0]}` : ""}. Your studio is ready.`);
+    window.setTimeout(() => setToast(""), 3500);
+  };
+  const signOut = () => {
+    saveNow();
+    localStorage.removeItem(AUTH_SESSION_KEY);
+    setAuthUser(null);
+    setMobileMenu(false);
+    setToast("You have signed out of this browser.");
+    window.setTimeout(() => setToast(""), 3500);
+  };
   const projectManagementOverlays = <>{toast && <div className="success-toast" role="status">{toast}</div>}{bookToDelete && <DeleteDraftModal book={bookToDelete} onCancel={() => setBookToDelete(null)} onConfirm={deleteBook} />}</>;
 
   if (activeBook && view === "blueprint") return <><BlueprintView book={activeBook} onBack={goWorkspace} onStartWriting={() => setView("chapters")} onChange={updateBook} onDelete={() => setBookToDelete(activeBook)} />{projectManagementOverlays}{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
   if (activeBook && view === "chapters") return <><ChapterStudio book={activeBook} lastSaved={lastSaved} onSave={() => saveNow()} onBack={goWorkspace} onBlueprint={() => setView("blueprint")} onChange={updateBook} onExport={() => setExportOpen(true)} onDelete={() => setBookToDelete(activeBook)} />{projectManagementOverlays}{exportOpen && <ExportCenter book={activeBook} onClose={() => setExportOpen(false)} onExported={recordExport} />}</>;
-  return <div className="app-shell"><header className="main-header page-shell"><button className="brand" onClick={goWorkspace}><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></button><nav className={mobileMenu ? "open" : ""}><button className="active" onClick={() => document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" })}><PenLine size={16} /> Author Workspace</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><BookOpenText size={16} /> Book Templates</button><button onClick={() => { const launcher = document.querySelector<HTMLButtonElement>(".feedback-launcher"); if (launcher) launcher.click(); else document.querySelector<HTMLElement>(".feedback-panel")?.focus(); }}><CircleHelp size={16} /> Help</button></nav><div className="header-action"><button className="new-book-nav" onClick={() => openWizard()}><Sparkles size={15} /> New Book</button><button className="menu-button" onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><AuthorWorkspace books={books} onOpen={openBook} onCreate={openWizard} onCreatePath={openCreationPath} onDelete={setBookToDelete} /><footer className="studio-dark-surface"><div className="page-shell footer-inner"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><p>Developed by <strong>ETL GIS Consulting LLC</strong></p><small>© ETL GIS Consulting LLC. All rights reserved.</small></div></footer><BetaFeedbackPanel books={books} onSubmit={submitFeedback} />{projectManagementOverlays}{wizardOpen && <NewBookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} initialPath={creationPath} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}</div>;
+  return <div className="app-shell"><header className="main-header page-shell"><button className="brand" onClick={goWorkspace}><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></button><nav className={mobileMenu ? "open" : ""}><button className="active" onClick={() => document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" })}><PenLine size={16} /> Author Workspace</button><button onClick={() => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" })}><BookOpenText size={16} /> Book Templates</button><button onClick={() => { const launcher = document.querySelector<HTMLButtonElement>(".feedback-launcher"); if (launcher) launcher.click(); else document.querySelector<HTMLElement>(".feedback-panel")?.focus(); }}><CircleHelp size={16} /> Help</button></nav><div className="header-action"><div className="auth-actions">{authUser ? <><span className="account-chip" title={authUser.email}><UserRound size={15} /><span><small>Signed in</small>{authUser.name}</span></span><button className="auth-nav-button auth-signout" onClick={signOut}><LogOut size={15} /> Sign out</button></> : <><button className="auth-nav-button" onClick={() => setAuthMode("signin")}><LogIn size={15} /> Sign in</button><button className="auth-nav-button auth-create" onClick={() => setAuthMode("signup")}><UserPlus size={15} /> Create account</button></>}</div><button className="new-book-nav" onClick={() => openWizard()}><Sparkles size={15} /> New Book</button><button className="menu-button" aria-label={mobileMenu ? "Close navigation" : "Open navigation"} onClick={() => setMobileMenu(!mobileMenu)}>{mobileMenu ? <X /> : <Menu />}</button></div></header><AuthorWorkspace books={books} onOpen={openBook} onCreate={openWizard} onCreatePath={openCreationPath} onDelete={setBookToDelete} /><footer className="studio-dark-surface"><div className="page-shell footer-inner"><div className="brand brand-light"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div><p>Developed by <strong>ETL GIS Consulting LLC</strong></p><small>© ETL GIS Consulting LLC. All rights reserved.</small></div></footer><BetaFeedbackPanel books={books} onSubmit={submitFeedback} />{projectManagementOverlays}{authMode && <AuthDialog mode={authMode} accounts={accounts} onClose={() => setAuthMode(null)} onModeChange={setAuthMode} onAuthenticated={finishAuthentication} />}{wizardOpen && <NewBookWizard key={selectedTemplate?.id ?? "blank"} initialTemplate={selectedTemplate} initialPath={creationPath} onClose={() => { setWizardOpen(false); setSelectedTemplate(null); }} onCreate={createBook} />}</div>;
 }
