@@ -19,9 +19,10 @@ interface Props {
   onCreate: (template?: BookTemplate) => void;
   onDelete: (book: Book) => void;
   onCreatePath: (path: CreationPathId) => void;
+  onAuthorSuccess: (book?: Book) => void;
 }
 
-export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath }: Props) {
+export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath, onAuthorSuccess }: Props) {
   const visibleBooks = getVisibleBooks(books);
   const current = visibleBooks[0];
 
@@ -30,9 +31,9 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
       <section className="studio-hero studio-dark-surface page-shell">
         <div className="studio-hero-atmosphere" aria-hidden="true"><span /><span /><span /><i /><i /></div>
         <motion.div className="studio-hero-copy" initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65 }}>
-          <p className="eyebrow studio-eyebrow"><Sparkles size={14} /> FROM FIRST THOUGHT TO FINISHED BOOK</p>
-          <h1 className="studio-dark-heading">Turn Your Idea Into a <em>Published Book.</em></h1>
-          <p className="hero-lede studio-dark-body">Clarity Loop helps you create a blueprint, chapters, manuscript, and publishing-ready export from one guided workspace.</p>
+          <p className="eyebrow studio-eyebrow"><Sparkles size={14} /> FROM FIRST THOUGHT TO AUTHOR SUCCESS</p>
+          <h1 className="studio-dark-heading">Turn Ideas Into Books—<em>and Books Into Opportunity.</em></h1>
+          <p className="hero-lede studio-dark-body">Clarity Loop helps you create the book, then position, launch, market, and extend it from one guided author-success platform.</p>
           <div className="hero-actions">
             <button type="button" className="primary-button hero-primary" onClick={() => onCreate()}><Plus size={18} /> Start Your Book</button>
             <button type="button" className="secondary-button" onClick={() => document.getElementById("book-build")?.scrollIntoView({ behavior: "smooth" })}>Watch the Book Build <ArrowRight size={16} /></button>
@@ -52,12 +53,12 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
       <section className="workflow-strip studio-dark-surface">
         <div className="page-shell workflow-inner">
           <p>The complete publishing journey</p>
-          {['Idea', 'Blueprint', 'Chapters', 'Manuscript', 'Export'].map((step, index) => <span key={step}><b>{index + 1}</b>{step}{index < 4 && <ArrowRight size={14} />}</span>)}
+          {['Idea', 'Blueprint', 'Chapters', 'Manuscript', 'Export', 'Author Success'].map((step, index) => <span key={step}><b>{index + 1}</b>{step}{index < 5 && <ArrowRight size={14} />}</span>)}
         </div>
       </section>
 
       <CreationPathSelector onSelect={onCreatePath} />
-      <StudioDirectory />
+      <StudioDirectory onOpenAuthorSuccess={() => onAuthorSuccess(current)} />
 
       <section className="workspace-section page-shell studio-dark-section" id="workspace">
         <div className="workspace-intro">
@@ -79,7 +80,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
 
       <div className="page-shell"><TemplateSelector onSelect={onCreate} /></div>
       <EngineeringShowcase />
-      <PublishingPack onStart={() => onCreate()} />
+      <PublishingPack onStart={() => onCreate()} onAuthorSuccess={() => onAuthorSuccess(current)} />
 
       <section className="final-cta">
         <div className="page-shell final-cta-inner"><BrandMark priority /><p className="eyebrow">YOUR BOOK IS WAITING</p><h2>You already have the idea.<br /><em>Now give it a spine.</em></h2><p>No complicated prompts. No scattered documents. Just one beautiful, guided path from thought to finished book.</p><button type="button" className="gold-button" onClick={() => onCreate()}>Start Your Book <ArrowRight size={16} /></button><small>Developed by ETL GIS Consulting LLC</small></div>
