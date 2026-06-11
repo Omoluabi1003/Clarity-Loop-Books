@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import {
   BookCheck,
   BookOpenText,
@@ -59,40 +59,40 @@ export function HeroBookDemo({ onStart }: { onStart: () => void }) {
       </div>
 
       <div className="demo-stage">
-        <AnimatePresence mode="wait">
+        <div className="demo-stage-content" key={activeStage}>
           {activeStage === 0 && (
-            <motion.div className="demo-idea" key="idea" initial={{ y: 12 }} animate={{ y: 0 }} exit={{ y: -8 }}>
+            <div className="demo-idea">
               <span className="demo-stage-icon"><PenLine size={18} /></span>
               <small>WHAT WOULD YOU LIKE TO WRITE?</small>
               <input aria-label="Demo book title" value={title} onChange={(event) => setTitle(event.target.value)} />
               <button onClick={advance}>Build my book <Sparkles size={14} /></button>
-            </motion.div>
+            </div>
           )}
 
           {activeStage === 1 && (
-            <motion.div className="demo-synopsis" key="synopsis" initial={{ x: 18 }} animate={{ x: 0 }} exit={{ x: -12 }}>
+            <div className="demo-synopsis">
               <div className="demo-section-label"><Sparkles size={14} /> AI BLUEPRINT</div>
               <h3>{title || "Your Book Title"}</h3>
               <p>A practical, encouraging guide for people who are ready to stop waiting for perfect confidence and begin making meaningful progress.</p>
               <div className="typing-lines"><i /><i /><i /></div>
-            </motion.div>
+            </div>
           )}
 
           {activeStage === 2 && (
-            <motion.div className="demo-structure" key="structure" initial={{ scale: .97 }} animate={{ scale: 1 }} exit={{ scale: .97 }}>
+            <div className="demo-structure">
               <div className="demo-section-label"><BookOpenText size={14} /> TABLE OF CONTENTS</div>
               <div className="demo-chapters">
                 {["The Myth of Ready", "Name What Matters", "Make the First Move", "Build Brave Momentum"].map((chapter, index) => (
-                  <motion.div key={chapter} initial={{ x: -10 }} animate={{ x: 0 }} transition={{ delay: index * .08 }}>
+                  <div key={chapter} style={{ animationDelay: `${index * 80}ms` }}>
                     <span>0{index + 1}</span><strong>{chapter}</strong><Check size={13} />
-                  </motion.div>
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           )}
 
           {activeStage === 3 && (
-            <motion.div className="demo-manuscript" key="manuscript" initial={{ y: 14 }} animate={{ y: 0 }} exit={{ y: -8 }}>
+            <div className="demo-manuscript">
               <div className="mini-book-cover"><small>CLARITY LOOP EDITION</small><strong>{title || "Your Book"}</strong><i /><span>YOUR NAME</span></div>
               <div className="mini-pages">
                 <div className="demo-section-label"><FileText size={14} /> MANUSCRIPT</div>
@@ -100,19 +100,19 @@ export function HeroBookDemo({ onStart }: { onStart: () => void }) {
                 <p>Progress rarely arrives as one dramatic act. More often, it begins with a small honest move...</p>
                 <div className="manuscript-count"><strong>42,600</strong><span>words written</span></div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {activeStage === 4 && (
-            <motion.div className="demo-export" key="export" initial={{ scale: .96 }} animate={{ scale: 1 }} exit={{ scale: .96 }}>
+            <div className="demo-export">
               <span className="export-seal"><BookCheck size={24} /></span>
               <small>YOUR BOOK IS READY</small>
               <h3>Publication-ready in every format.</h3>
               <div>{["PDF", "DOCX", "EPUB"].map((format) => <button key={format} type="button" disabled title="Available after your manuscript passes publishing readiness"><FileText size={16} /><strong>{format}</strong><Download size={14} /></button>)}</div>
               <button className="demo-start" onClick={onStart}>Start your own book <ChevronRight size={15} /></button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
 
       <div className="demo-caption">
