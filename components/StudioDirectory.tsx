@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { STUDIO_MODULES } from "@/lib/studio-catalog";
+import { BrandLogo } from "./BrandLogo";
 
 const moduleDetails = {
   manuscript: {
@@ -89,6 +90,7 @@ export function StudioDirectory() {
             <button className="module-back-button" type="button" onClick={closeModule}>
               <ArrowLeft size={15} /> Back to studios
             </button>
+            <div className="module-workspace-brand"><BrandLogo context={selectedStudio.title} /></div>
             <div className="module-workspace-hero">
               <span className="module-workspace-icon"><details.icon size={28} /></span>
               <div>
@@ -142,6 +144,7 @@ export function StudioDirectory() {
           </div>
         ) : (
           <>
+            <div className="directory-brand"><BrandLogo context="Connected Creative Studios" /></div>
             <div className="directory-heading">
               <div><p className="eyebrow">THE PUBLISHING OPERATING SYSTEM</p><h2 className="studio-dark-heading" id="studio-directory-title">Specialized studios, one creative record.</h2></div>
               <div className="integrity-promise"><ShieldCheck size={22}/><span><strong>Content Integrity Gate</strong><small>Clean words—not padded words—determine readiness.</small></span></div>

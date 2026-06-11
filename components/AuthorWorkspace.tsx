@@ -11,6 +11,7 @@ import { PublishingPack } from "./PublishingPack";
 import { TemplateSelector } from "./TemplateSelector";
 import { CreationPathSelector } from "./CreationPathSelector";
 import { StudioDirectory } from "./StudioDirectory";
+import { BrandLogo } from "./BrandLogo";
 
 interface Props {
   books: Book[];
@@ -29,6 +30,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
       <section className="studio-hero studio-dark-surface page-shell">
         <div className="studio-hero-atmosphere" aria-hidden="true"><span /><span /><span /><i /><i /></div>
         <motion.div className="studio-hero-copy" initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65 }}>
+          <div className="hero-brand-signature"><BrandLogo showName={false} priority /><span>Clarity Loop AI Book Studio</span></div>
           <p className="eyebrow studio-eyebrow"><Sparkles size={14} /> FROM FIRST THOUGHT TO FINISHED BOOK</p>
           <h1 className="studio-dark-heading">Turn Your Idea Into a <em>Published Book.</em></h1>
           <p className="hero-lede studio-dark-body">Clarity Loop helps you create a blueprint, chapters, manuscript, and publishing-ready export from one guided workspace.</p>
@@ -64,7 +66,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
           <div className="workspace-actions"><button type="button" className="primary-button" onClick={() => onCreate()}><Plus size={17} /> Create New Book</button>{current && <button type="button" className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={17} /> Continue Writing</button>}</div>
         </div>
         <div className="section-heading manuscript-heading"><div><p className="eyebrow studio-eyebrow">ON YOUR WRITING DESK</p><h3 className="studio-dark-subheading">Books in progress</h3></div>{current && <button type="button" className="text-button studio-text-button-on-dark" onClick={() => onOpen(current, "blueprint")}>Review latest blueprint <ArrowRight size={15} /></button>}</div>
-        <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} key={book.id} />)}<button type="button" className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
+        <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} key={book.id} />)}<button type="button" className="blank-book" onClick={() => onCreate()}><BrandLogo showName={false} /><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
       </section>
 
       <section className="method-section">
@@ -81,7 +83,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
       <PublishingPack onStart={() => onCreate()} />
 
       <section className="final-cta">
-        <div className="page-shell final-cta-inner"><span className="final-ornament">CL</span><p className="eyebrow">YOUR BOOK IS WAITING</p><h2>You already have the idea.<br /><em>Now give it a spine.</em></h2><p>No complicated prompts. No scattered documents. Just one beautiful, guided path from thought to finished book.</p><button type="button" className="gold-button" onClick={() => onCreate()}>Start Your Book <ArrowRight size={16} /></button><small>Developed by ETL GIS Consulting LLC</small></div>
+        <div className="page-shell final-cta-inner"><BrandLogo className="final-brand" showName={false} /><p className="eyebrow">YOUR BOOK IS WAITING</p><h2>You already have the idea.<br /><em>Now give it a spine.</em></h2><p>No complicated prompts. No scattered documents. Just one beautiful, guided path from thought to finished book.</p><button type="button" className="gold-button" onClick={() => onCreate()}>Start Your Book <ArrowRight size={16} /></button><small>Developed by ETL GIS Consulting LLC</small></div>
       </section>
     </main>
   );

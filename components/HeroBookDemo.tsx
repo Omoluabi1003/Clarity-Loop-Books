@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { BrandLogo } from "./BrandLogo";
 
 const stages = [
   { label: "Idea", detail: "The Courage to Begin" },
@@ -93,7 +94,7 @@ export function HeroBookDemo({ onStart }: { onStart: () => void }) {
 
           {activeStage === 3 && (
             <motion.div className="demo-manuscript" key="manuscript" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              <div className="mini-book-cover"><small>CLARITY LOOP EDITION</small><strong>{title || "Your Book"}</strong><i /><span>YOUR NAME</span></div>
+              <div className="mini-book-cover"><BrandLogo className="mini-cover-brand" showName={false} /><small>CLARITY LOOP EDITION</small><strong>{title || "Your Book"}</strong><i /><span>YOUR NAME</span></div>
               <div className="mini-pages">
                 <div className="demo-section-label"><FileText size={14} /> MANUSCRIPT</div>
                 <small>CHAPTER FOUR</small><h3>Build Brave Momentum</h3>

@@ -1,10 +1,17 @@
-import { AlignmentType, BorderStyle, Document, HeadingLevel, HeightRule, Packer, PageBreak, Paragraph, ShadingType, Table, TableCell, TableRow, TextRun, VerticalAlign, WidthType } from "docx";
+import { AlignmentType, BorderStyle, Document, HeadingLevel, HeightRule, ImageRun, Packer, PageBreak, Paragraph, ShadingType, Table, TableCell, TableRow, TextRun, VerticalAlign, WidthType } from "docx";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { assembleManuscript } from "./manuscript";
 import type { Book } from "./types";
 
 const MIME = { pdf: "application/pdf", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" } as const;
 const MIDNIGHT = "101D35", GOLD = "C89A4B", IVORY = "F7F0E3";
+const BRAND_LOGO_PATH = path.join(process.cwd(), "public", "assets", "branding", "clarity-loop-logo.png");
+
+async function readBrandLogo(): Promise<Buffer> {
+  return readFile(BRAND_LOGO_PATH);
+}
 
 export function safeFilename(title: string, extension: keyof typeof MIME): string {
   const base = title.normalize("NFKD").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "book";
@@ -17,14 +24,14 @@ function paragraphToDocx(text: string): Paragraph {
   return new Paragraph({ children: [new TextRun({ text, size: 23, font: "Georgia", color: "243247" })], spacing: { after: 180, line: 330 }, widowControl: true });
 }
 
-function designedDocxCover(book: Book): Table {
+function designedDocxCover(book: Book, logo: Buffer): Table {
   const noBorders = { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } };
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE }, borders: noBorders,
     rows: [new TableRow({ height: { value: 11520, rule: HeightRule.EXACT }, children: [new TableCell({
       verticalAlign: VerticalAlign.CENTER, shading: { fill: MIDNIGHT, type: ShadingType.CLEAR }, margins: { top: 900, bottom: 900, left: 720, right: 720 },
       children: [
-        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 420 }, children: [new TextRun({ text: "◯  ━━━  ◇", color: GOLD, size: 34, font: "Georgia" })] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 360 }, children: [new ImageRun({ data: logo, transformation: { width: 92, height: 92 }, type: "png" })] }),
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 300 }, children: [new TextRun({ text: book.title.toUpperCase(), color: IVORY, bold: true, size: 54, font: "Georgia" })] }),
         ...(book.subtitle ? [new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 900 }, children: [new TextRun({ text: book.subtitle, color: "D9CDBA", italics: true, size: 25, font: "Georgia" })] })] : []),
         new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 700 }, children: [new TextRun({ text: book.authorName.toUpperCase(), color: GOLD, bold: true, size: 25, font: "Aptos" })] }),
@@ -36,10 +43,12 @@ function designedDocxCover(book: Book): Table {
 
 export async function renderDocx(book: Book): Promise<Buffer> {
   const manuscript = assembleManuscript(book);
+  const logo = await readBrandLogo();
   const children: (Paragraph | Table)[] = [];
   manuscript.sections.forEach((section, index) => {
     if (index > 0 && section.pageBreakBefore) children.push(new Paragraph({ children: [new PageBreak()] }));
-    if (section.kind === "cover") { children.push(designedDocxCover(book)); return; }
+    if (section.kind === "cover") { children.push(designedDocxCover(book, logo)); return; }
+    if (section.kind === "title_page") children.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 720, after: 360 }, children: [new ImageRun({ data: logo, transformation: { width: 72, height: 72 }, type: "png" })] }));
     const centered = section.kind === "title_page" || section.kind === "part_divider";
     children.push(new Paragraph({ text: section.title, heading: section.kind === "chapter" ? HeadingLevel.HEADING_1 : HeadingLevel.TITLE, alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT, spacing: { before: centered ? 1200 : 0, after: 280 }, pageBreakBefore: false }));
     section.paragraphs.forEach((paragraph) => children.push(paragraphToDocx(paragraph)));
@@ -60,7 +69,9 @@ function wrapText(text: string, font: { widthOfTextAtSize(text: string, size: nu
 
 export async function renderPdf(book: Book): Promise<Buffer> {
   const manuscript = assembleManuscript(book);
+  const logoBytes = await readBrandLogo();
   const pdf = await PDFDocument.create(); pdf.setTitle(book.title); pdf.setAuthor(book.authorName); pdf.setSubject(book.subtitle);
+  const brandLogo = await pdf.embedPng(logoBytes);
   const bodyFont = await pdf.embedFont(StandardFonts.TimesRoman); const boldFont = await pdf.embedFont(StandardFonts.TimesRomanBold); const sans = await pdf.embedFont(StandardFonts.HelveticaBold);
   const width = 612, height = 792, margin = 72, maxWidth = width - margin * 2;
   let page = pdf.addPage([width, height]); let y = height - margin; let pageNumber = 0; let numberPages = false;
@@ -71,6 +82,7 @@ export async function renderPdf(book: Book): Promise<Buffer> {
     if (index > 0 && section.pageBreakBefore) { if (section.kind === "chapter" && !numberPages) { numberPages = true; pageNumber = 0; } addPage(); }
     if (section.kind === "cover") {
       page.drawRectangle({ x: 0, y: 0, width, height, color: rgb(.063, .114, .208) });
+      page.drawImage(brandLogo, { x: width / 2 - 46, y: 630, width: 92, height: 92 });
       page.drawCircle({ x: 142, y: 595, size: 68, borderColor: rgb(.78, .60, .29), borderWidth: 4 });
       page.drawCircle({ x: 222, y: 595, size: 39, borderColor: rgb(.78, .60, .29), borderWidth: 3 });
       page.drawLine({ start: { x: 257, y: 595 }, end: { x: 475, y: 595 }, thickness: 4, color: rgb(.78, .60, .29) });
@@ -82,7 +94,8 @@ export async function renderPdf(book: Book): Promise<Buffer> {
       return;
     }
     const centered = section.kind === "title_page" || section.kind === "part_divider";
-    if (centered) y = height * .65;
+    if (section.kind === "title_page") { page.drawImage(brandLogo, { x: width / 2 - 36, y: 610, width: 72, height: 72 }); y = 555; }
+    else if (centered) y = height * .65;
     draw(section.title, section.kind === "chapter" ? 20 : section.kind === "part_divider" ? 28 : 24, true, section.kind === "part_divider" ? 34 : 27, centered);
     section.paragraphs.forEach((paragraph) => { const heading = /^#{1,6}\s+/.test(paragraph); draw(paragraph, heading ? 14 : 11, heading, heading ? 20 : 16, centered && section.kind !== "title_page"); });
   });
