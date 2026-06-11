@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/BrandMark";
 import { Check, Eye, EyeOff, LockKeyhole, Mail, UserRound, X } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import type { AuthUser, StoredAccount } from "@/lib/auth";
@@ -83,7 +84,7 @@ export function AuthDialog({ mode, accounts, onClose, onAuthenticated, onModeCha
     <div className="auth-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className={`auth-dialog auth-screen ${isSignup ? "signup-screen" : "signin-screen"} studio-dark-surface`} role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <button className="auth-close" type="button" aria-label="Close account dialog" onClick={onClose}><X size={18} /></button>
-        <div className="auth-brand"><span className="brand-mark">CL</span><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div>
+        <div className="auth-brand"><BrandMark /><span><strong>Clarity Loop</strong><small>AI BOOK STUDIO</small></span></div>
         <div className="auth-heading">
           <span className="auth-icon"><UserRound size={20} /></span>
           <p className="eyebrow">{isSignup ? "YOUR PRIVATE STUDIO" : "WELCOME BACK"}</p>

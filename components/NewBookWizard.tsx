@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/BrandMark";
 import {
   ArrowLeft,
   ArrowRight,
@@ -173,7 +174,7 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
     <div className={`creation-studio-overlay studio-accent-${path.accent}`} role="dialog" aria-modal="true" aria-label={`${path.label} setup studio`}>
       <header className="creation-studio-header">
         <button type="button" className="studio-brand" onClick={onClose} aria-label="Close creation studio">
-          <span className="brand-mark">CL</span>
+          <BrandMark />
           <span><strong>Clarity Loop</strong><small>CREATION ATELIER</small></span>
         </button>
         <div className="studio-path-identity"><Icon size={15} /><span>{path.shortLabel}</span><i /><small><b>Studio Mode</b> · Private working session</small></div>
