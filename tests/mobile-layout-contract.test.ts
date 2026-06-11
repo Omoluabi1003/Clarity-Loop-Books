@@ -7,6 +7,8 @@ const authDialog = readFileSync(new URL("../components/AuthDialog.tsx", import.m
 const bookStudio = readFileSync(new URL("../components/BookStudio.tsx", import.meta.url), "utf8");
 const rootLayout = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
 
+const heroDemo = readFileSync(new URL("../components/HeroBookDemo.tsx", import.meta.url), "utf8");
+
 test("the application declares a device-width, safe-area-aware viewport", () => {
   assert.match(rootLayout, /width: "device-width"/);
   assert.match(rootLayout, /viewportFit: "cover"/);
@@ -49,4 +51,12 @@ test("signed-out visitors can browse until a studio action opens the blurred aut
   assert.doesNotMatch(css, /\.auth-gated-content\{[^}]*transition:[^}]*filter/);
   assert.match(authDialog, /dismissible && event\.key === "Escape"/);
   assert.match(authDialog, /dismissible && event\.target === event\.currentTarget/);
+});
+
+test("the live demo does not wait on animation callbacks before mounting its next stage", () => {
+  assert.doesNotMatch(heroDemo, /AnimatePresence|motion\./);
+  assert.match(heroDemo, /className="demo-stage-content" key=\{activeStage\}/);
+  assert.match(css, /\.demo-stage-content\{[^}]*animation:demoStageEnter[^}]*will-change:transform/);
+  assert.match(css, /@keyframes demoStageEnter\{from\{transform:translate3d\(0,12px,0\)\}to\{transform:translate3d\(0,0,0\)\}\}/);
+  assert.match(css, /@media\(prefers-reduced-motion:reduce\)\{\.demo-stage-content,\.demo-chapters>div\{animation:none/);
 });
