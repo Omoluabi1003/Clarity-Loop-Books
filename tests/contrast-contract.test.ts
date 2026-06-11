@@ -96,3 +96,27 @@ test("hero demo transitions never fade readable content below full opacity", () 
   assert.doesNotMatch(heroDemo, /initial=\{\{[^}]*opacity:\s*0/);
   assert.doesNotMatch(heroDemo, /exit=\{\{[^}]*opacity:\s*0/);
 });
+
+test("rendered light islands and compact metadata keep explicit readable foregrounds", () => {
+  const renderedAudit = css.slice(css.indexOf("/* Rendered contrast audit"));
+  for (const selector of [
+    "workspace-section.studio-dark-section .workspace-actions .secondary-button",
+    "workspace-section.studio-dark-section .book-card",
+    "templates-section .section-heading",
+    "outline-chips span",
+    "theme-list span",
+    "empty-page>p",
+    "empty-page>small",
+    "context-section>small",
+    "publishing-metrics small",
+    "permanent-delete-option small",
+    "chapter-nav button>span",
+    "preview-modules article>span",
+    "intelligence-card>span",
+  ]) assert.match(renderedAudit, new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
+test("disabled controls remain fully opaque because their text still requires contrast", () => {
+  const renderedAudit = css.slice(css.indexOf("/* Rendered contrast audit"));
+  assert.match(renderedAudit, /button:disabled,\[aria-disabled="true"\]\{opacity:1;filter:none\}/);
+});
