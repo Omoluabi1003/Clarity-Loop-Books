@@ -15,3 +15,9 @@ node_modules/
 .next/
 .env.local
 *.tsbuildinfo
+
+# Generated social sharing and application icon assets
+/public/clarity-loop-og.png
+/public/favicon.ico
+/public/icon.png
+/public/apple-icon.png

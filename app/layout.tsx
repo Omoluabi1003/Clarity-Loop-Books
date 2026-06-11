@@ -1,13 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { PWARegistration } from "@/components/PWARegistration";
-import logo from "../CL AI Logo.png";
-
-const logoUrl = logo.src.replaceAll(" ", "%20");
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-  ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "http://localhost:3000");
 import "./globals.css";
+
+const siteUrl = "https://clarity-loop-books.vercel.app";
+const socialImageUrl = `${siteUrl}/clarity-loop-og.png`;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -19,7 +15,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Clarity Loop AI Book Studio",
-  description: "A premium AI publishing platform that turns ideas into publication-ready books.",
+  description: "Turn your idea into a professional, downloadable book.",
   applicationName: "Clarity Loop AI Book Studio",
   authors: [{ name: "ETL GIS Consulting LLC" }],
   creator: "ETL GIS Consulting LLC",
@@ -32,27 +28,34 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   icons: {
-    icon: [{ url: logoUrl, sizes: "1024x1024", type: "image/png" }],
-    apple: [{ url: logoUrl, sizes: "1024x1024", type: "image/png" }],
+    icon: [
+      { url: `${siteUrl}/favicon.ico`, sizes: "48x48", type: "image/x-icon" },
+      { url: `${siteUrl}/icon.png`, sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: [`${siteUrl}/favicon.ico`],
+    apple: [{ url: `${siteUrl}/apple-icon.png`, sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     type: "website",
     title: "Clarity Loop AI Book Studio",
-    description: "A premium AI publishing platform that turns ideas into publication-ready books.",
+    description: "Turn your idea into a professional, downloadable book.",
+    url: siteUrl,
     siteName: "Clarity Loop AI Book Studio",
-    images: [{
-      url: logoUrl,
-      width: 1024,
-      height: 1024,
-      alt: "Clarity Loop AI Book Studio logo",
-      type: "image/png",
-    }],
+    images: [
+      {
+        url: socialImageUrl,
+        width: 1200,
+        height: 630,
+        alt: "Clarity Loop AI Book Studio",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Clarity Loop AI Book Studio",
-    description: "A premium AI publishing platform that turns ideas into publication-ready books.",
-    images: [{ url: logoUrl, alt: "Clarity Loop AI Book Studio logo" }],
+    description: "Turn your idea into a professional, downloadable book.",
+    images: [{ url: socialImageUrl, alt: "Clarity Loop AI Book Studio" }],
   },
 };
 
