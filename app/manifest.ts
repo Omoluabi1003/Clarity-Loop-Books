@@ -1,13 +1,10 @@
 import type { MetadataRoute } from "next";
-import logo from "../CL AI Logo.png";
-
-const logoUrl = logo.src.replaceAll(" ", "%20");
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Clarity Loop AI Book Studio",
     short_name: "Clarity Loop",
-    description: "A guided AI publishing studio for turning ideas into publication-ready books.",
+    description: "Turn your idea into a professional, downloadable book.",
     id: "/",
     start_url: "/",
     scope: "/",
@@ -18,14 +15,14 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["books", "productivity", "writing"],
     icons: [
       {
-        src: logoUrl,
-        sizes: "1024x1024",
+        src: "/icon.png",
+        sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: logoUrl,
-        sizes: "1024x1024",
+        src: "/icon.png",
+        sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
       },
