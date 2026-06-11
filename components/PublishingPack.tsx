@@ -11,7 +11,7 @@ const assets = [
   { icon: Tags, label: "Category suggestions", state: "Market aligned" },
 ];
 
-export function PublishingPack({ onStart }: { onStart: () => void }) {
+export function PublishingPack({ onStart, onAuthorSuccess }: { onStart: () => void; onAuthorSuccess?: () => void }) {
   return (
     <section className="publishing-pack page-shell">
       <motion.div className="publishing-pack-card" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .25 }}>
@@ -19,7 +19,7 @@ export function PublishingPack({ onStart }: { onStart: () => void }) {
           <p className="eyebrow">BEYOND THE MANUSCRIPT</p>
           <h2>Your book needs more than a file.<br /><em>It needs a launch-ready story.</em></h2>
           <p>Build the essential copy that positions your book, introduces you as the author, and helps the right readers discover it.</p>
-          <button className="gold-button" onClick={onStart}>Build your publishing pack <ArrowUpRight size={16} /></button>
+          <div className="pack-cta-row"><button className="gold-button" onClick={onStart}>Build your publishing pack <ArrowUpRight size={16} /></button>{onAuthorSuccess && <button className="pack-success-link" onClick={onAuthorSuccess}>Open Author Success Hub <ArrowUpRight size={16} /></button>}</div>
         </div>
         <div className="pack-assets">
           <div className="pack-status"><span><Check size={13} /> PUBLISHING PACK</span><small>5 assets included</small></div>

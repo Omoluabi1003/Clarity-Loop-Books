@@ -176,11 +176,31 @@ export interface BetaFeedback {
   createdAt: string;
 }
 
+export type AuthorSuccessStatus = "not_started" | "analyzing" | "draft_ready" | "needs_review" | "ready" | "exported";
+export type AuthorSuccessTier = "free_preview" | "creator" | "author_pro" | "studio" | "agency_enterprise" | "paid_pending";
+
+export interface ReaderAvatar { name: string; ageRange: string; professionOrLifeStage: string; currentProblem: string; desiredOutcome: string; emotionalState: string; buyingTrigger: string; objection: string; preferredPlatform: string; }
+export interface MarketabilityReport { marketabilityScore: number; audienceClarityScore: number; titleStrengthScore: number; subtitleStrengthScore: number; coverStrengthScore: number; positioningScore: number; readerPromiseScore: number; categoryFitScore: number; salesReadinessScore: number; topWeaknesses: string[]; topRecommendations: string[]; }
+export interface ReaderDNA { primaryReaderAvatar: ReaderAvatar; secondaryReaderAvatar: ReaderAvatar; readerPainPoints: string[]; readerGoals: string[]; readerBuyingTriggers: string[]; readerObjections: string[]; readerTransformationPromise: string; whereReadersCanBeFound: string[]; languageReadersUse: string[]; }
+export interface BookPositioning { positioningStatement: string; uniqueSellingProposition: string; readerPromise: string; competitiveAngle: string; categoryRecommendations: string[]; keywordThemes: string[]; backCoverHook: string; oneSentencePitch: string; thirtySecondPitch: string; }
+export interface PublishingPackage { amazonDescription: string; barnesAndNobleDescription: string; backCoverCopy: string; shortBookDescription: string; longBookDescription: string; authorBioShort: string; authorBioLong: string; keywords: string[]; categories: string[]; bookMetadata: Record<string, string>; disclaimerSuggestions: string[]; }
+export interface LaunchPackage { launchReadinessScore: number; launchChecklist: string[]; thirtyDayLaunchPlan: string[]; sixtyDayLaunchPlan: string[]; ninetyDayLaunchPlan: string[]; arcReaderStrategy: string; reviewRequestPlan: string[]; influencerOutreachPlan: string[]; launchEmailSequence: string[]; launchDayChecklist: string[]; }
+export interface MarketingPackage { linkedInPosts: string[]; facebookPosts: string[]; xPosts: string[]; threadsPosts: string[]; instagramCaptions: string[]; tikTokVideoIdeas: string[]; youtubeShortsIdeas: string[]; podcastPitchEmail: string; pressRelease: string; bookTrailerScript: string; }
+export interface ReviewAcquisitionPlan { arcInvitationMessage: string; reviewRequestEmail: string; reviewFollowUpEmail: string; launchTeamMessage: string; readerThankYouMessage: string; reviewTrackingChecklist: string[]; }
+export interface MonetizationPackage { workshopOutline: string[]; courseOutline: string[]; webinarOutline: string[]; keynoteTopics: string[]; speakerOneSheetCopy: string; consultingOffer: string; leadMagnetIdeas: string[]; emailNurtureSequence: string[]; coachingPackageIdeas: string[]; corporateTrainingAngle: string; }
+export interface AuthorSuccessBlueprint { authorSuccessScore: number; bookBusinessSummary: string; recommendedAudience: string; recommendedPositioning: string; recommendedLaunchStrategy: string; recommendedMarketingChannels: string[]; recommendedRevenuePaths: string[]; firstSevenDaysActionPlan: string[]; nextThirtyDaysActionPlan: string[]; nextNinetyDaysActionPlan: string[]; }
+export interface AuthorSuccessAsset { id: string; type: "marketability" | "reader_dna" | "positioning" | "publishing" | "launch" | "marketing" | "reviews" | "monetization" | "blueprint"; title: string; status: "preview" | "ready" | "locked"; generatedAt: string; }
+export interface AuthorSuccessPlan { marketability: MarketabilityReport; readerDNA: ReaderDNA; positioning: BookPositioning; publishing: PublishingPackage; launch: LaunchPackage; marketing: MarketingPackage; reviews: ReviewAcquisitionPlan; monetization: MonetizationPackage; blueprint: AuthorSuccessBlueprint; disclaimer: string; }
+
 export interface Book {
   id: string;
   projectType?: ProjectType;
   sourceProjectId?: string;
   publishingReadinessScore?: number;
+  authorSuccessStatus?: AuthorSuccessStatus;
+  marketabilityScore?: number;
+  launchReadinessScore?: number;
+  authorSuccessAssets?: AuthorSuccessAsset[];
   coverQualityScore?: number;
   coverStatus?: "missing" | "concept_ready" | "prompt_ready" | "placeholder_ready" | "uploaded" | "generated" | "approved" | "failed_quality";
   originalManuscript?: string;

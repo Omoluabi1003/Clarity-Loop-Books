@@ -11,6 +11,7 @@ import {
   PackageCheck,
   ShieldCheck,
   Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
 import { STUDIO_MODULES } from "@/lib/studio-catalog";
@@ -52,6 +53,11 @@ const moduleDetails = {
       ["Upload cover", "Prepare a finished cover file for quality checks and publishing assembly."],
     ],
   },
+  author_success_hub: {
+    purpose: "Turn a finished or drafted book into a focused positioning, publishing, launch, marketing, and monetization plan.",
+    icon: TrendingUp,
+    actions: [["Open Author Success Hub", "Generate a project-specific post-book operating plan."], ["Preview marketability", "Review the book’s launch signals and priority recommendations."], ["Build launch assets", "Prepare ethical review, channel, and 90-day launch assets."]],
+  },
   publishing: {
     purpose: "Prepare clean book files, metadata, back-cover copy, keywords, and launch-ready assets.",
     icon: PackageCheck,
@@ -65,13 +71,14 @@ const moduleDetails = {
 
 type ModuleId = keyof typeof moduleDetails;
 
-export function StudioDirectory() {
+export function StudioDirectory({ onOpenAuthorSuccess }: { onOpenAuthorSuccess?: () => void }) {
   const [selectedModule, setSelectedModule] = useState<ModuleId | null>(null);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const selectedStudio = selectedModule ? STUDIO_MODULES.find((item) => item.id === selectedModule) : null;
   const details = selectedModule ? moduleDetails[selectedModule] : null;
 
   const openModule = (id: string) => {
+    if (id === "author_success_hub" && onOpenAuthorSuccess) { onOpenAuthorSuccess(); return; }
     setSelectedModule(id as ModuleId);
     setSelectedAction(null);
   };
