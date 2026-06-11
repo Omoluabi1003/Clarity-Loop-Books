@@ -61,7 +61,7 @@ export function HeroBookDemo({ onStart }: { onStart: () => void }) {
       <div className="demo-stage">
         <AnimatePresence mode="wait">
           {activeStage === 0 && (
-            <motion.div className="demo-idea" key="idea" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+            <motion.div className="demo-idea" key="idea" initial={{ y: 12 }} animate={{ y: 0 }} exit={{ y: -8 }}>
               <span className="demo-stage-icon"><PenLine size={18} /></span>
               <small>WHAT WOULD YOU LIKE TO WRITE?</small>
               <input aria-label="Demo book title" value={title} onChange={(event) => setTitle(event.target.value)} />
@@ -70,7 +70,7 @@ export function HeroBookDemo({ onStart }: { onStart: () => void }) {
           )}
 
           {activeStage === 1 && (
-            <motion.div className="demo-synopsis" key="synopsis" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}>
+            <motion.div className="demo-synopsis" key="synopsis" initial={{ x: 18 }} animate={{ x: 0 }} exit={{ x: -12 }}>
               <div className="demo-section-label"><Sparkles size={14} /> AI BLUEPRINT</div>
               <h3>{title || "Your Book Title"}</h3>
               <p>A practical, encouraging guide for people who are ready to stop waiting for perfect confidence and begin making meaningful progress.</p>
@@ -79,11 +79,11 @@ export function HeroBookDemo({ onStart }: { onStart: () => void }) {
           )}
 
           {activeStage === 2 && (
-            <motion.div className="demo-structure" key="structure" initial={{ opacity: 0, scale: .97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="demo-structure" key="structure" initial={{ scale: .97 }} animate={{ scale: 1 }} exit={{ scale: .97 }}>
               <div className="demo-section-label"><BookOpenText size={14} /> TABLE OF CONTENTS</div>
               <div className="demo-chapters">
                 {["The Myth of Ready", "Name What Matters", "Make the First Move", "Build Brave Momentum"].map((chapter, index) => (
-                  <motion.div key={chapter} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * .08 }}>
+                  <motion.div key={chapter} initial={{ x: -10 }} animate={{ x: 0 }} transition={{ delay: index * .08 }}>
                     <span>0{index + 1}</span><strong>{chapter}</strong><Check size={13} />
                   </motion.div>
                 ))}
@@ -92,7 +92,7 @@ export function HeroBookDemo({ onStart }: { onStart: () => void }) {
           )}
 
           {activeStage === 3 && (
-            <motion.div className="demo-manuscript" key="manuscript" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div className="demo-manuscript" key="manuscript" initial={{ y: 14 }} animate={{ y: 0 }} exit={{ y: -8 }}>
               <div className="mini-book-cover"><small>CLARITY LOOP EDITION</small><strong>{title || "Your Book"}</strong><i /><span>YOUR NAME</span></div>
               <div className="mini-pages">
                 <div className="demo-section-label"><FileText size={14} /> MANUSCRIPT</div>
@@ -104,7 +104,7 @@ export function HeroBookDemo({ onStart }: { onStart: () => void }) {
           )}
 
           {activeStage === 4 && (
-            <motion.div className="demo-export" key="export" initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="demo-export" key="export" initial={{ scale: .96 }} animate={{ scale: 1 }} exit={{ scale: .96 }}>
               <span className="export-seal"><BookCheck size={24} /></span>
               <small>YOUR BOOK IS READY</small>
               <h3>Publication-ready in every format.</h3>
