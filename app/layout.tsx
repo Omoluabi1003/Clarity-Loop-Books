@@ -15,9 +15,9 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Clarity Loop AI Book Studio",
-  description: "Turn your idea into a professional, downloadable book.",
-  applicationName: "Clarity Loop AI Book Studio",
+  title: "Clarity Loop — AI Author Operating System",
+  description: "Create, position, publish, market, and grow from one intelligent author platform.",
+  applicationName: "Clarity Loop AI Author OS",
   authors: [{ name: "ETL GIS Consulting LLC" }],
   creator: "ETL GIS Consulting LLC",
   publisher: "ETL GIS Consulting LLC",
@@ -38,10 +38,10 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "Clarity Loop AI Book Studio",
-    description: "Turn your idea into a professional, downloadable book.",
+    title: "Clarity Loop — AI Author Operating System",
+    description: "Create, position, publish, market, and grow from one intelligent author platform.",
     url: siteUrl,
-    siteName: "Clarity Loop AI Book Studio",
+    siteName: "Clarity Loop AI Author OS",
     images: [
       {
         url: socialImageUrl,
@@ -54,8 +54,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Clarity Loop AI Book Studio",
-    description: "Turn your idea into a professional, downloadable book.",
+    title: "Clarity Loop — AI Author Operating System",
+    description: "Create, position, publish, market, and grow from one intelligent author platform.",
     images: [{ url: socialImageUrl, alt: "Clarity Loop AI Book Studio" }],
   },
 };
