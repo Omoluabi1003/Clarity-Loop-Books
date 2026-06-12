@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, BookMarked, FileCheck2, Plus, Sparkles } from "lucide-react";
+import { ArchiveRestore, ArrowRight, BookMarked, FileCheck2, Plus, Sparkles } from "lucide-react";
 import type { Book, BookTemplate, CreationPathId } from "@/lib/types";
 import { visibleBooks as getVisibleBooks } from "@/lib/persistence";
 import { BookCard } from "./BookCard";
@@ -24,11 +24,13 @@ interface Props {
   onRename: (book: Book, title: string) => void;
   onDuplicate: (book: Book) => void;
   onArchive: (book: Book) => void;
+  onRestore: (book: Book) => void;
 }
 
-export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath, onAuthorSuccess, onRename, onDuplicate, onArchive }: Props) {
+export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath, onAuthorSuccess, onRename, onDuplicate, onArchive, onRestore }: Props) {
   const visibleBooks = getVisibleBooks(books);
   const current = visibleBooks[0];
+  const inactiveBooks = books.filter((book) => book.deletedAt || book.archivedAt);
 
   return (
     <main>
@@ -61,7 +63,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
         </div>
       </section>
 
-      {current && <AuthorOperatingSystem book={current} bookCount={visibleBooks.length} onNavigate={(book, action) => action === "author_success" ? onAuthorSuccess(book) : onOpen(book, action)} />}
+      {current && <AuthorOperatingSystem book={current} books={books} onNavigate={(book, action) => action === "author_success" ? onAuthorSuccess(book) : onOpen(book, action)} />}
 
       <CreationPathSelector onSelect={onCreatePath} />
       <StudioDirectory onOpenAuthorSuccess={() => onAuthorSuccess(current)} />
@@ -72,7 +74,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
           <div className="workspace-actions"><button type="button" className="primary-button" onClick={() => onCreate()}><Plus size={17} /> Create New Book</button>{current && <button type="button" className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={17} /> Continue Writing</button>}</div>
         </div>
         <div className="section-heading manuscript-heading"><div><p className="eyebrow studio-eyebrow">ON YOUR WRITING DESK</p><h3 className="studio-dark-subheading">Books in progress</h3></div>{current && <button type="button" className="text-button studio-text-button-on-dark" onClick={() => onOpen(current, "blueprint")}>Review latest blueprint <ArrowRight size={15} /></button>}</div>
-        <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} onRename={(title) => onRename(book, title)} onDuplicate={() => onDuplicate(book)} onArchive={() => onArchive(book)} key={book.id} />)}<button type="button" className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
+        <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} onRename={(title) => onRename(book, title)} onDuplicate={() => onDuplicate(book)} onArchive={() => onArchive(book)} key={book.id} />)}<button type="button" className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>{inactiveBooks.length > 0 && <details className="inactive-projects"><summary><ArchiveRestore size={16} /> Archived & recently deleted <span>{inactiveBooks.length}</span></summary><div>{inactiveBooks.map((book) => <article key={book.id}><span><strong>{book.title}</strong><small>{book.deletedAt ? "Recently deleted" : "Archived"} · Last edited {new Date(book.updatedAt).toLocaleDateString()}</small></span><button type="button" onClick={() => onRestore(book)}><ArchiveRestore size={14} /> Restore</button>{!book.deletedAt && <button type="button" className="inactive-delete" onClick={() => onDelete(book)}>Delete</button>}</article>)}</div></details>}
       </section>
 
       <section className="method-section">

@@ -3,12 +3,12 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, BarChart3, Check, ChevronRight, CircleDollarSign, Copy, Globe2, Headphones, Languages, MailPlus, Megaphone, MonitorSmartphone, ShieldCheck, Sparkles, WandSparkles } from "lucide-react";
 import type { Book } from "@/lib/types";
-import { analyzeManuscriptIntelligence, getAuthorNextAction, getPublishingChecklist } from "@/lib/author-os";
+import { analyzeManuscriptIntelligence, buildAuthorBrain, getAuthorNextAction, getPublishingChecklist } from "@/lib/author-os";
 import { buildPublicBookPreview, encodeBookPreview } from "@/lib/book-preview";
 
 interface Props {
   book: Book;
-  bookCount: number;
+  books: Book[];
   onNavigate: (book: Book, action: "blueprint" | "chapters" | "author_success") => void;
 }
 
@@ -19,9 +19,10 @@ const offers = [
   { icon: Megaphone, name: "Marketing kit", detail: "Launch emails, social assets, and pitches", price: "From $79" },
 ];
 
-export function AuthorOperatingSystem({ book, bookCount, onNavigate }: Props) {
+export function AuthorOperatingSystem({ book, books, onNavigate }: Props) {
   const intelligence = useMemo(() => analyzeManuscriptIntelligence(book), [book]);
   const nextAction = useMemo(() => getAuthorNextAction(book), [book]);
+  const authorBrain = useMemo(() => buildAuthorBrain(books), [books]);
   const checklist = useMemo(() => getPublishingChecklist(book), [book]);
   const [copied, setCopied] = useState(false);
   const completed = checklist.filter((item) => item.complete).length;
@@ -42,8 +43,14 @@ export function AuthorOperatingSystem({ book, bookCount, onNavigate }: Props) {
   return <section className="author-os page-shell" aria-labelledby="author-os-title">
     <div className="author-os-heading">
       <div><p className="eyebrow"><Sparkles size={14} /> AUTHOR OPERATING SYSTEM</p><h2 id="author-os-title">Your next book is only part of the plan.</h2><p>Write, improve, publish, grow an audience, and build revenue from one author command center.</p></div>
-      <div className="author-os-identity"><span>{book.authorName.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span><div><small>AUTHOR PORTFOLIO</small><strong>{bookCount} {bookCount === 1 ? "book" : "books"} in your studio</strong></div></div>
+      <div className="author-os-identity"><span>{book.authorName.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span><div><small>AUTHOR PORTFOLIO</small><strong>{authorBrain.projectCount} {authorBrain.projectCount === 1 ? "book" : "books"} · memory {authorBrain.memoryStrength}%</strong></div></div>
     </div>
+
+    <article className="author-brain-card">
+      <div><p className="eyebrow"><Sparkles size={14} /> AUTHOR BRAIN</p><h3>Your creative memory gets smarter with every project.</h3><p>Clarity Loop remembers your recurring voice, reader, and themes so returning work starts with context—not a blank prompt.</p></div>
+      <dl><div><dt>Preferred tone</dt><dd>{authorBrain.preferredTone}</dd></div><div><dt>Writing style</dt><dd>{authorBrain.preferredWritingStyle}</dd></div><div><dt>Primary audience</dt><dd>{authorBrain.primaryAudience}</dd></div><div><dt>Next-book signal</dt><dd>{authorBrain.nextBookRecommendation}</dd></div></dl>
+      <div className="author-brain-themes">{authorBrain.favoriteThemes.map((theme) => <span key={theme}>{theme}</span>)}</div>
+    </article>
 
     <div className="author-os-grid">
       <article className="author-os-card next-action-card">
