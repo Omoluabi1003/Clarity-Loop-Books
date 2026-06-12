@@ -31,6 +31,17 @@ function shouldIgnore(node: Node): boolean {
   return Boolean(element?.closest(CONTENT_EXCLUSIONS));
 }
 
+export function LanguageSelector({ compact = false, id = "global-language" }: { compact?: boolean; id?: string }) {
+  const { locale, setLocale, t } = useI18n();
+  return <div className={compact ? "mobile-language-selector" : "global-language-selector"} data-i18n-ignore>
+    <Languages aria-hidden="true" size={17} />
+    <label htmlFor={id}>{t("common.language")}</label>
+    <select id={id} value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("common.selectLanguage")}>
+      {SUPPORTED_LOCALES.map((item) => <option key={item} value={item}>{LOCALE_LABELS[item]}</option>)}
+    </select>
+  </div>;
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
   const textSources = useRef(new WeakMap<Text, string>());
@@ -114,18 +125,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [locale]);
 
   const value = useMemo<I18nContextValue>(() => ({ locale, direction: localeDirection(locale), setLocale, t, translateUiText }), [locale, setLocale, t, translateUiText]);
-  const selectorLabel = translateKey(locale, "common.selectLanguage");
-
   return (
     <I18nContext.Provider value={value}>
       <a className="i18n-skip-link" href="#main-content">{t("common.skipToContent")}</a>
-      <div className="global-language-selector" data-i18n-ignore>
-        <Languages aria-hidden="true" size={17} />
-        <label htmlFor="global-language">{translateKey(locale, "common.language")}</label>
-        <select id="global-language" value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={selectorLabel}>
-          {SUPPORTED_LOCALES.map((item) => <option key={item} value={item}>{LOCALE_LABELS[item]}</option>)}
-        </select>
-      </div>
+      <LanguageSelector />
       <main id="main-content">{children}</main>
     </I18nContext.Provider>
   );

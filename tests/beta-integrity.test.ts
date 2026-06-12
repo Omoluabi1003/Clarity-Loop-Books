@@ -84,7 +84,7 @@ test("soft and permanent deletion remove drafts from Books in Progress", () => {
   const softDeleted = deleteBookFromState([book, companion], book.id, false, "2026-06-10T00:00:00.000Z");
   assert.deepEqual(visibleBooks(softDeleted).map((item) => item.id), ["keep-book"]);
   const deleted = softDeleted.find((item) => item.id === book.id)!;
-  assert.equal(deleted.status, "deleted"); assert.equal(deleted.deletedAt, "2026-06-10T00:00:00.000Z"); assert.deepEqual(deleted.chapters, []); assert.deepEqual(deleted.exportHistory, []);
+  assert.equal(deleted.status, "deleted"); assert.equal(deleted.deletedAt, "2026-06-10T00:00:00.000Z"); assert.equal(deleted.chapters.length, book.chapters.length); assert.deepEqual(deleted.exportHistory, book.exportHistory);
   assert.deepEqual(deleteBookFromState([book, companion], book.id, true).map((item) => item.id), ["keep-book"]);
 });
 
@@ -177,4 +177,13 @@ test("every creation atelier path has distinct ideation fields, copy, steps, and
   assert.ok(upload.stepOne.fields.some((field) => field.type === "url"));
   const pitch = CREATION_PATHS.find((path) => path.id === "movie_pitch_pack")!;
   assert.ok(["premise", "format", "targetAudience", "whyNow"].every((name) => pitch.stepOne.fields.some((field) => field.name === name)));
+});
+
+
+test("recently deleted books retain manuscript data for restoration", () => {
+  const book = qaBook();
+  const deleted = deleteBookFromState([book], book.id)[0];
+  assert.equal(deleted.status, "deleted");
+  assert.equal(deleted.chapters.length, book.chapters.length);
+  assert.deepEqual(deleted.exportHistory, book.exportHistory);
 });

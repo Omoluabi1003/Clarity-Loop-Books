@@ -21,9 +21,6 @@ export function deleteBookFromState(books: Book[], bookId: string, permanent = f
     ...book,
     deletedAt,
     status: "deleted",
-    chapters: [],
-    exportHistory: [],
-    coverImageUrl: undefined,
     updatedAt: deletedAt,
   } : book);
 }

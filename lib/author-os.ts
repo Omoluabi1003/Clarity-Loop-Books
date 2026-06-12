@@ -12,10 +12,51 @@ export interface ManuscriptIntelligence {
   uniquenessScore: number;
   toneConsistencyScore: number;
   structureScore: number;
+  audienceAlignmentScore: number;
+  readabilityScore: number;
+  commercialClarityScore: number;
   repeatedOpeningGroups: number[][];
   repeatedPhrases: string[];
   recommendations: string[];
   signals: ManuscriptSignal[];
+}
+
+
+export interface AuthorBrainProfile {
+  preferredTone: string;
+  preferredWritingStyle: string;
+  primaryAudience: string;
+  favoriteThemes: string[];
+  projectCount: number;
+  completedProjectCount: number;
+  nextBookRecommendation: string;
+  memoryStrength: number;
+}
+
+function mostFrequent(values: string[], fallback: string): string {
+  const counts = values.filter(Boolean).reduce<Record<string, number>>((result, value) => ({ ...result, [value]: (result[value] || 0) + 1 }), {});
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || fallback;
+}
+
+export function buildAuthorBrain(books: Book[]): AuthorBrainProfile {
+  const active = books.filter((book) => !book.deletedAt);
+  const themes = active.flatMap((book) => [book.genre, ...(book.bookDna?.themes || [])]).filter(Boolean);
+  const preferredTone = mostFrequent(active.map((book) => book.tone), "Not learned yet");
+  const preferredWritingStyle = mostFrequent(active.map((book) => book.writingStyle), "Not learned yet");
+  const primaryAudience = mostFrequent(active.map((book) => book.targetAudience), "Not learned yet");
+  const favoriteThemes = [...new Set(themes)].slice(0, 4);
+  const completedProjectCount = active.filter((book) => book.status === "exported" || book.progress >= 100).length;
+  const latestGenre = active.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0]?.genre;
+  return {
+    preferredTone,
+    preferredWritingStyle,
+    primaryAudience,
+    favoriteThemes,
+    projectCount: active.length,
+    completedProjectCount,
+    nextBookRecommendation: latestGenre ? `Build a differentiated follow-up in ${latestGenre} for ${primaryAudience}.` : "Start a project to unlock a personalized next-book recommendation.",
+    memoryStrength: clamp(active.length * 22 + Math.min(30, active.reduce((sum, book) => sum + book.chapters.filter((chapter) => chapter.content.trim()).length, 0) * 3)),
+  };
 }
 
 export interface AuthorNextAction {
@@ -64,7 +105,13 @@ export function analyzeManuscriptIntelligence(book: Book): ManuscriptIntelligenc
   const structured = drafted.filter((chapter) => chapter.outline.length >= 2 && chapter.summary.trim() && chapter.title.trim()).length;
   const structureScore = book.chapters.length ? clamp((structured / book.chapters.length) * 100) : 0;
   const completionScore = book.chapterCount ? clamp((drafted.length / book.chapterCount) * 100) : 0;
-  const publishReadyScore = clamp(quality.score * .34 + uniquenessScore * .2 + toneConsistencyScore * .18 + structureScore * .14 + completionScore * .14);
+  const audienceTerms = words(`${book.targetAudience} ${book.bookDna.promise}`).filter((word) => word.length > 4);
+  const manuscriptWords = new Set(words(drafted.map((chapter) => chapter.content).join(" ")));
+  const audienceAlignmentScore = drafted.length ? clamp(55 + (audienceTerms.filter((word) => manuscriptWords.has(word)).length / Math.max(1, audienceTerms.length)) * 45) : 0;
+  const averageSentenceLength = fingerprints.length ? fingerprints.reduce((sum, item) => sum + item.sentenceLength, 0) / fingerprints.length : 0;
+  const readabilityScore = drafted.length ? clamp(100 - Math.abs(17 - averageSentenceLength) * 4) : 0;
+  const commercialClarityScore = clamp((book.title.trim() ? 25 : 0) + (book.subtitle.trim() ? 20 : 0) + (book.targetAudience.trim() ? 25 : 0) + (book.bookDna.promise?.trim() ? 30 : 0));
+  const publishReadyScore = clamp(quality.score * .24 + uniquenessScore * .16 + toneConsistencyScore * .14 + structureScore * .12 + completionScore * .12 + audienceAlignmentScore * .1 + readabilityScore * .06 + commercialClarityScore * .06);
   const repeatedPhrases = quality.repeatedPhraseFamilies.filter((item) => item.exceedsThreshold).map((item) => item.phrase);
   const recommendations: string[] = [];
 
@@ -81,6 +128,9 @@ export function analyzeManuscriptIntelligence(book: Book): ManuscriptIntelligenc
     uniquenessScore,
     toneConsistencyScore,
     structureScore,
+    audienceAlignmentScore,
+    readabilityScore,
+    commercialClarityScore,
     repeatedOpeningGroups: quality.duplicateOpenings,
     repeatedPhrases,
     recommendations: recommendations.slice(0, 4),
@@ -88,6 +138,9 @@ export function analyzeManuscriptIntelligence(book: Book): ManuscriptIntelligenc
       { label: "Chapter uniqueness", score: uniquenessScore, detail: "Distinct ideas and vocabulary across chapters" },
       { label: "Tone consistency", score: toneConsistencyScore, detail: `Alignment with the ${book.tone} voice` },
       { label: "Structure quality", score: structureScore, detail: "Complete chapter promises, summaries, and outlines" },
+      { label: "Audience alignment", score: audienceAlignmentScore, detail: `Fit for ${book.targetAudience}` },
+      { label: "Readability", score: readabilityScore, detail: "Sentence rhythm and reading accessibility" },
+      { label: "Commercial clarity", score: commercialClarityScore, detail: "Title, promise, audience, and positioning clarity" },
     ],
   };
 }
