@@ -29,5 +29,5 @@ export function deleteBookFromState(books: Book[], bookId: string, permanent = f
 }
 
 export function visibleBooks(books: Book[]): Book[] {
-  return books.filter((book) => !book.deletedAt && book.status !== "deleted");
+  return books.filter((book) => !book.deletedAt && !book.archivedAt && book.status !== "deleted");
 }

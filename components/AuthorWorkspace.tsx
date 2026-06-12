@@ -12,6 +12,7 @@ import { PublishingPack } from "./PublishingPack";
 import { TemplateSelector } from "./TemplateSelector";
 import { CreationPathSelector } from "./CreationPathSelector";
 import { StudioDirectory } from "./StudioDirectory";
+import { AuthorOperatingSystem } from "./AuthorOperatingSystem";
 
 interface Props {
   books: Book[];
@@ -20,9 +21,12 @@ interface Props {
   onDelete: (book: Book) => void;
   onCreatePath: (path: CreationPathId) => void;
   onAuthorSuccess: (book?: Book) => void;
+  onRename: (book: Book, title: string) => void;
+  onDuplicate: (book: Book) => void;
+  onArchive: (book: Book) => void;
 }
 
-export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath, onAuthorSuccess }: Props) {
+export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePath, onAuthorSuccess, onRename, onDuplicate, onArchive }: Props) {
   const visibleBooks = getVisibleBooks(books);
   const current = visibleBooks[0];
 
@@ -57,6 +61,8 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
         </div>
       </section>
 
+      {current && <AuthorOperatingSystem book={current} bookCount={visibleBooks.length} onNavigate={(book, action) => action === "author_success" ? onAuthorSuccess(book) : onOpen(book, action)} />}
+
       <CreationPathSelector onSelect={onCreatePath} />
       <StudioDirectory onOpenAuthorSuccess={() => onAuthorSuccess(current)} />
 
@@ -66,7 +72,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
           <div className="workspace-actions"><button type="button" className="primary-button" onClick={() => onCreate()}><Plus size={17} /> Create New Book</button>{current && <button type="button" className="secondary-button" onClick={() => onOpen(current, "chapters")}><BookMarked size={17} /> Continue Writing</button>}</div>
         </div>
         <div className="section-heading manuscript-heading"><div><p className="eyebrow studio-eyebrow">ON YOUR WRITING DESK</p><h3 className="studio-dark-subheading">Books in progress</h3></div>{current && <button type="button" className="text-button studio-text-button-on-dark" onClick={() => onOpen(current, "blueprint")}>Review latest blueprint <ArrowRight size={15} /></button>}</div>
-        <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} key={book.id} />)}<button type="button" className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
+        <div className="books-grid">{visibleBooks.map((book) => <BookCard book={book} onOpen={() => onOpen(book, "chapters")} onDelete={() => onDelete(book)} onRename={(title) => onRename(book, title)} onDuplicate={() => onDuplicate(book)} onArchive={() => onArchive(book)} key={book.id} />)}<button type="button" className="blank-book" onClick={() => onCreate()}><span><Plus size={24} /></span><strong>Begin a new book</strong><small>Start with an idea, title, or message.</small></button></div>
       </section>
 
       <section className="method-section">
