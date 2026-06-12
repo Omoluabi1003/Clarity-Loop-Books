@@ -1,11 +1,14 @@
-import { ArrowUpRight, BookOpenText, Clock3, Download, MoreVertical, Trash2 } from "lucide-react";
+import { Archive, ArrowUpRight, BookOpenText, Clock3, Copy, Download, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { Book } from "@/lib/types";
 import { ManuscriptProgress } from "./ManuscriptProgress";
 
-export function BookCard({ book, onOpen, onDelete }: { book: Book; onOpen: () => void; onDelete: () => void }) {
+interface Props { book: Book; onOpen: () => void; onDelete: () => void; onRename: (title: string) => void; onDuplicate: () => void; onArchive: () => void; }
+
+export function BookCard({ book, onOpen, onDelete, onRename, onDuplicate, onArchive }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const updated = book.updatedAt.includes("T") ? new Date(book.updatedAt).toLocaleString() : book.updatedAt;
+  const rename = () => { const title = window.prompt("Rename this book", book.title)?.trim(); setMenuOpen(false); if (title && title !== book.title) onRename(title); };
   return <article className="book-card">
     <button className="book-card-open" onClick={onOpen} aria-label={`Open ${book.title}`}>
       <span data-book-content className={`book-cover ${book.color}`} style={book.coverImageUrl ? { backgroundImage: `url(${book.coverImageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}><small>{book.authorName}</small><BookOpenText size={26} /><strong>{book.title}</strong><em>{book.genre}</em></span>
@@ -18,6 +21,6 @@ export function BookCard({ book, onOpen, onDelete }: { book: Book; onOpen: () =>
       </span>
     </button>
     <button className="book-card-menu-button" aria-label={`Actions for ${book.title}`} aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}><MoreVertical size={18} /></button>
-    {menuOpen && <div className="book-card-menu"><button onClick={() => { setMenuOpen(false); onDelete(); }}><Trash2 size={15} /> Delete Draft</button></div>}
+    {menuOpen && <div className="book-card-menu"><button onClick={rename}><Pencil size={15} /> Rename</button><button onClick={() => { setMenuOpen(false); onDuplicate(); }}><Copy size={15} /> Duplicate</button><button onClick={() => { setMenuOpen(false); onArchive(); }}><Archive size={15} /> Archive</button><button onClick={() => { setMenuOpen(false); onDelete(); }}><Trash2 size={15} /> Delete Draft</button></div>}
   </article>;
 }

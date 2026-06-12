@@ -245,6 +245,7 @@ export interface Book {
   qualityScore: number;
   qualityFlags?: string[];
   deletedAt?: string | null;
+  archivedAt?: string | null;
   status: BookStatus;
   progress: number;
   updatedAt: string;
