@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import type { Book, LeaderboardEntityType, LeaderboardFilters, LeaderboardScore, MarketConfidenceLevel, MarketIntelligencePlan, MarketRecommendation, MarketSourceType, SalesAggregationWindow, SalesReportRow, SalesSourceType, SalesUploadResult, SalesVerificationStatus, VerificationBadgeDefinition } from "./types";
+import type { Book, LeaderboardEntityType, LeaderboardFilters, LeaderboardScore, MarketConfidenceLevel, MarketIntelligencePlan, AuthorPartnerFinderResult, MarketRecommendation, MarketSourceType, SalesAggregationWindow, SalesReportRow, SalesSourceType, SalesUploadResult, SalesVerificationStatus, VerificationBadgeDefinition } from "./types";
 
 const clamp = (value: number) => Math.max(0, Math.min(100, Math.round(Number.isFinite(value) ? value : 0)));
 const freshness: SalesAggregationWindow[] = ["daily", "weekly", "monthly", "quarterly", "yearly"];
@@ -76,6 +76,26 @@ export async function processSalesUpload(file: File): Promise<SalesUploadResult>
   const filenameHash = crypto.createHash("sha256").update(file.name).digest("hex");
   const rowsProcessed = extension === "csv" ? parseSalesCsv(bytes.toString("utf8"), file.name).length : 0;
   return { accepted: true, reportId: crypto.createHash("sha1").update(`${filenameHash}:${bytes.length}`).digest("hex").slice(0, 12), filenameHash, sourceName: file.name, supportedFormat: extension, rowsProcessed, badge: extension === "csv" ? "silver" : "silver", warnings: extension === "xlsx" ? ["XLSX file type validated; structured workbook parsing is queued for the ingestion worker."] : [] };
+}
+
+export function buildAuthorPartnerFinder(filters: Partial<LeaderboardFilters> = {}): AuthorPartnerFinderResult {
+  const comparisonRows = buildLeaderboardScores(sampleSalesRows, { ...filters, includeLowConfidence: true });
+  const verifiedRows = comparisonRows.filter((row) => row.verificationStatus === "verified");
+  const topPublisher = comparisonRows.find((score) => score.entityType === "publisher");
+  const topMarketer = comparisonRows.find((score) => score.entityType === "marketing_partner");
+  const topOverall = comparisonRows[0];
+  return {
+    topPublisher,
+    topMarketer,
+    topOverall,
+    comparisonRows,
+    decisionNotes: [
+      verifiedRows.length ? `${verifiedRows.length} partner${verifiedRows.length === 1 ? " has" : "s have"} verified sales evidence available for comparison.` : "No verified partner rows match these filters yet; request uploaded reports before choosing.",
+      "Use verified units and verified revenue first; treat estimated and public-signal rows as directional only.",
+      "Compare publisher and marketer lift separately so authors can choose a publishing home, a launch partner, or both.",
+      "Ask every shortlisted partner for source dates, campaign scope, author references, and deletion rights before committing budget."
+    ]
+  };
 }
 
 export function buildMarketRecommendations(filters: Partial<LeaderboardFilters> = {}): MarketRecommendation[] {
