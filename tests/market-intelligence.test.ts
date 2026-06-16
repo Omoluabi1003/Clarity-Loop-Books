@@ -27,6 +27,18 @@ const rows = parseSalesCsv("bookTitle,authorName,entityName,entityType,unitsSold
 });
 
 
+test("leaderboard windows exclude stale rows and preserve audit attribution", () => {
+  const rows = parseSalesCsv("bookTitle,authorName,entityName,entityType,unitsSold,revenue,sourceType,sourceUrl\nFresh Book,A,Window Press,publisher,100,1000,verified,upload://fresh\nOld Book,A,Window Press,publisher,900,9000,verified,upload://old");
+  rows[1] = { ...rows[1], collectedAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString() };
+  const monthly = buildLeaderboardScores(rows, { window: "monthly", includeLowConfidence: true });
+  const yearly = buildLeaderboardScores(rows, { window: "yearly", includeLowConfidence: true });
+  assert.equal(monthly[0].verifiedUnitsSold, 100);
+  assert.equal(yearly[0].verifiedUnitsSold, 1000);
+  assert.equal(monthly[0].dataPermission, "user_uploaded");
+  assert.ok(monthly[0].auditTrail.some((item) => /upload:\/\/fresh/.test(item)));
+});
+
+
 test("author partner finder highlights top publisher and marketer before selection", () => {
   const finder = buildAuthorPartnerFinder();
   assert.equal(finder.topPublisher?.entityType, "publisher");
