@@ -189,7 +189,7 @@ export interface MarketingPackage { linkedInPosts: string[]; facebookPosts: stri
 export interface ReviewAcquisitionPlan { arcInvitationMessage: string; reviewRequestEmail: string; reviewFollowUpEmail: string; launchTeamMessage: string; readerThankYouMessage: string; reviewTrackingChecklist: string[]; }
 export interface MonetizationPackage { workshopOutline: string[]; courseOutline: string[]; webinarOutline: string[]; keynoteTopics: string[]; speakerOneSheetCopy: string; consultingOffer: string; leadMagnetIdeas: string[]; emailNurtureSequence: string[]; coachingPackageIdeas: string[]; corporateTrainingAngle: string; }
 export interface AuthorSuccessBlueprint { authorSuccessScore: number; bookBusinessSummary: string; recommendedAudience: string; recommendedPositioning: string; recommendedLaunchStrategy: string; recommendedMarketingChannels: string[]; recommendedRevenuePaths: string[]; firstSevenDaysActionPlan: string[]; nextThirtyDaysActionPlan: string[]; nextNinetyDaysActionPlan: string[]; }
-export interface AuthorSuccessAsset { id: string; type: "marketability" | "reader_dna" | "positioning" | "publishing" | "launch" | "marketing" | "reviews" | "monetization" | "blueprint"; title: string; status: "preview" | "ready" | "locked"; generatedAt: string; }
+export interface AuthorSuccessAsset { id: string; type: "marketability" | "market_intelligence" | "reader_dna" | "positioning" | "publishing" | "launch" | "marketing" | "reviews" | "monetization" | "blueprint"; title: string; status: "preview" | "ready" | "locked"; generatedAt: string; }
 export interface AuthorSuccessPlan { marketability: MarketabilityReport; readerDNA: ReaderDNA; positioning: BookPositioning; publishing: PublishingPackage; launch: LaunchPackage; marketing: MarketingPackage; reviews: ReviewAcquisitionPlan; monetization: MonetizationPackage; blueprint: AuthorSuccessBlueprint; disclaimer: string; }
 
 export interface Book {
@@ -329,3 +329,11 @@ export interface SavedStudioState {
   feedback: BetaFeedback[];
   savedAt: string;
 }
+
+export type MarketConfidenceLevel = "verified" | "high_confidence" | "estimated" | "low_confidence";
+export type MarketSourceType = "official_api" | "licensed_feed" | "user_upload" | "partner_integration" | "public_page";
+export interface MarketTimeWindowSignal { window: "daily" | "weekly" | "monthly" | "quarterly" | "yearly"; rankVelocity: number; reviewVelocity: number; categoryMomentum: number; campaignLift: number; confidenceScore: number; }
+export interface MarketSourceAdapterSummary { name: string; sourceType: MarketSourceType; permission: "permitted" | "verified" | "licensed" | "terms_review_required"; auditRequirement: string; }
+export interface MarketScoreMetrics { rankVelocity: number; reviewVelocity: number; categoryMomentum: number; priceElasticitySignal: number; campaignLift: number; publisherLiftScore: number; marketerLiftScore: number; salesConfidenceScore: number; engagementRecommendationScore: number; }
+export interface MarketScorecard { name: string; score: number; evidence: string[]; confidence: MarketConfidenceLevel; }
+export interface MarketIntelligencePlan { marketScore: number; confidenceLevel: MarketConfidenceLevel; salesConfidenceScore: number; formulaSummary: string; disclaimer: string; timeWindows: MarketTimeWindowSignal[]; metrics: MarketScoreMetrics; sourceArchitecture: MarketSourceAdapterSummary[]; dashboardModules: string[]; publisherScorecard: MarketScorecard; marketingPartnerScorecard: MarketScorecard; recommendations: string[]; }
