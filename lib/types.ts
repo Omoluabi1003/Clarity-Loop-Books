@@ -337,3 +337,17 @@ export interface MarketSourceAdapterSummary { name: string; sourceType: MarketSo
 export interface MarketScoreMetrics { rankVelocity: number; reviewVelocity: number; categoryMomentum: number; priceElasticitySignal: number; campaignLift: number; publisherLiftScore: number; marketerLiftScore: number; salesConfidenceScore: number; engagementRecommendationScore: number; }
 export interface MarketScorecard { name: string; score: number; evidence: string[]; confidence: MarketConfidenceLevel; }
 export interface MarketIntelligencePlan { marketScore: number; confidenceLevel: MarketConfidenceLevel; salesConfidenceScore: number; formulaSummary: string; disclaimer: string; timeWindows: MarketTimeWindowSignal[]; metrics: MarketScoreMetrics; sourceArchitecture: MarketSourceAdapterSummary[]; dashboardModules: string[]; publisherScorecard: MarketScorecard; marketingPartnerScorecard: MarketScorecard; recommendations: string[]; }
+
+export type SalesSourceType = "verified" | "estimated" | "self_reported" | "public_signal" | "partner";
+export type SalesVerificationStatus = "verified" | "estimated" | "self_reported" | "public_signal_based" | "pending_review";
+export type SalesConfidenceBadge = "bronze" | "silver" | "gold" | "platinum" | "diamond";
+export type SalesAggregationWindow = "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+export type LeaderboardEntityType = "publisher" | "marketing_partner" | "launch_specialist" | "publicist";
+export interface SalesMetricAttribution { sourceType: SalesSourceType; sourceName: string; confidenceLevel: MarketConfidenceLevel; collectedAt: string; verificationStatus: SalesVerificationStatus; }
+export interface SalesReportRow extends SalesMetricAttribution { bookTitle: string; authorName: string; entityName: string; entityType: LeaderboardEntityType; genre: string; category: string; language: string; country: string; unitsSold: number; revenue: number; campaignSpend?: number; authorSatisfaction?: number; }
+export interface VerificationBadgeDefinition { badge: SalesConfidenceBadge; label: string; description: string; }
+export interface LeaderboardScore extends SalesMetricAttribution { entityId: string; entityName: string; entityType: LeaderboardEntityType; badge: SalesConfidenceBadge; window: SalesAggregationWindow; verifiedUnitsSold: number; estimatedUnitsSold: number; verifiedRevenue: number; estimatedRevenue: number; salesGrowthVelocity: number; reviewGrowthVelocity: number; categoryRankMovement: number; campaignRoi: number; authorSatisfaction: number; claritySalesRankScore: number; includedInTopRankings: boolean; evidence: string[]; }
+export interface LeaderboardFilters { window: SalesAggregationWindow; genre?: string; category?: string; language?: string; country?: string; entityType?: LeaderboardEntityType; includeLowConfidence?: boolean; verifiedOnly?: boolean; }
+export interface SalesUploadResult { accepted: boolean; reportId: string; filenameHash: string; sourceName: string; supportedFormat: "csv" | "xlsx"; rowsProcessed: number; badge: SalesConfidenceBadge; warnings: string[]; derivedRowsDeletedByUser?: boolean; }
+export interface MarketRecommendation { recommendedEntity: string; entityType: LeaderboardEntityType; confidenceExplanation: string; riskWarnings: string[]; estimatedOpportunityScore: number; rationale: string[]; }
+export interface MarketIntelligenceSchemaTable { name: string; purpose: string; requiredAttribution: string[]; }
