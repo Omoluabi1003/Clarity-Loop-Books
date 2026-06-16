@@ -33,5 +33,6 @@ test("author partner finder highlights top publisher and marketer before selecti
   assert.equal(finder.topMarketer?.entityType, "marketing_partner");
   assert.ok(finder.topPublisher.verifiedUnitsSold > 0);
   assert.ok(finder.topMarketer.verifiedUnitsSold > 0);
+  assert.ok(finder.decisionNotes.some((note) => /most verified sales/i.test(note)));
   assert.ok(finder.decisionNotes.some((note) => /verified units/i.test(note)));
 });

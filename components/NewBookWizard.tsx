@@ -11,6 +11,7 @@ import {
   PackageCheck,
   PenTool,
   Presentation,
+  SearchCheck,
   Sparkles,
   UploadCloud,
   X,
@@ -202,6 +203,10 @@ export function NewBookWizard({ initialTemplate, initialPath = "start_from_idea"
               );
             })}
           </ol>
+          <a className="partner-check-card" href="/market-intelligence" target="_blank" rel="noreferrer">
+            <SearchCheck size={16} />
+            <span><b>Check partner sales first</b>Compare publishers and marketers by verified units before choosing who helps launch this book.</span>
+          </a>
           <blockquote><Sparkles size={14} /><span><b>Creative director’s note</b>{path.directorNote}</span></blockquote>
         </aside>
 
