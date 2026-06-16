@@ -81,15 +81,17 @@ export async function processSalesUpload(file: File): Promise<SalesUploadResult>
 export function buildAuthorPartnerFinder(filters: Partial<LeaderboardFilters> = {}): AuthorPartnerFinderResult {
   const comparisonRows = buildLeaderboardScores(sampleSalesRows, { ...filters, includeLowConfidence: true });
   const verifiedRows = comparisonRows.filter((row) => row.verificationStatus === "verified");
-  const topPublisher = comparisonRows.find((score) => score.entityType === "publisher");
-  const topMarketer = comparisonRows.find((score) => score.entityType === "marketing_partner");
-  const topOverall = comparisonRows[0];
+  const byMostSales = (rows: LeaderboardScore[]) => [...rows].sort((a, b) => (b.verifiedUnitsSold - a.verifiedUnitsSold) || (b.estimatedUnitsSold - a.estimatedUnitsSold) || (b.verifiedRevenue - a.verifiedRevenue) || (b.claritySalesRankScore - a.claritySalesRankScore));
+  const topPublisher = byMostSales(comparisonRows.filter((score) => score.entityType === "publisher"))[0];
+  const topMarketer = byMostSales(comparisonRows.filter((score) => score.entityType === "marketing_partner"))[0];
+  const topOverall = byMostSales(comparisonRows)[0];
   return {
     topPublisher,
     topMarketer,
     topOverall,
     comparisonRows,
     decisionNotes: [
+      topOverall ? `${topOverall.entityName} currently has the most verified sales in this comparison: ${topOverall.verifiedUnitsSold.toLocaleString()} verified units and $${Math.round(topOverall.verifiedRevenue).toLocaleString()} verified revenue.` : "No partner rows match these filters yet; request uploaded reports before choosing.",
       verifiedRows.length ? `${verifiedRows.length} partner${verifiedRows.length === 1 ? " has" : "s have"} verified sales evidence available for comparison.` : "No verified partner rows match these filters yet; request uploaded reports before choosing.",
       "Use verified units and verified revenue first; treat estimated and public-signal rows as directional only.",
       "Compare publisher and marketer lift separately so authors can choose a publishing home, a launch partner, or both.",
