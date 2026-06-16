@@ -350,4 +350,5 @@ export interface LeaderboardScore extends SalesMetricAttribution { entityId: str
 export interface LeaderboardFilters { window: SalesAggregationWindow; genre?: string; category?: string; language?: string; country?: string; entityType?: LeaderboardEntityType; includeLowConfidence?: boolean; verifiedOnly?: boolean; }
 export interface SalesUploadResult { accepted: boolean; reportId: string; filenameHash: string; sourceName: string; supportedFormat: "csv" | "xlsx"; rowsProcessed: number; badge: SalesConfidenceBadge; warnings: string[]; derivedRowsDeletedByUser?: boolean; }
 export interface MarketRecommendation { recommendedEntity: string; entityType: LeaderboardEntityType; confidenceExplanation: string; riskWarnings: string[]; estimatedOpportunityScore: number; rationale: string[]; }
+export interface AuthorPartnerFinderResult { topPublisher?: LeaderboardScore; topMarketer?: LeaderboardScore; topOverall?: LeaderboardScore; comparisonRows: LeaderboardScore[]; decisionNotes: string[]; }
 export interface MarketIntelligenceSchemaTable { name: string; purpose: string; requiredAttribution: string[]; }

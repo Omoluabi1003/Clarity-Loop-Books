@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArchiveRestore, ArrowRight, BookMarked, FileCheck2, Plus, Sparkles } from "lucide-react";
+import { ArchiveRestore, ArrowRight, BarChart3, BookMarked, FileCheck2, Plus, SearchCheck, Sparkles } from "lucide-react";
 import type { Book, BookTemplate, CreationPathId } from "@/lib/types";
 import { visibleBooks as getVisibleBooks } from "@/lib/persistence";
 import { BookCard } from "./BookCard";
@@ -42,7 +42,7 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
           <p className="hero-lede studio-dark-body">Clarity Loop helps you create the book, then position, launch, market, and extend it from one guided author-success platform.</p>
           <div className="hero-actions">
             <button type="button" className="primary-button hero-primary" onClick={() => onCreate()}><Plus size={18} /> Start Your Book</button>
-            <button type="button" className="secondary-button" onClick={() => document.getElementById("book-build")?.scrollIntoView({ behavior: "smooth" })}>Watch the Book Build <ArrowRight size={16} /></button>
+            <button type="button" className="secondary-button" onClick={() => document.getElementById("book-build")?.scrollIntoView({ behavior: "smooth" })}>Watch the Book Build <ArrowRight size={16} /></button><button type="button" className="secondary-button" onClick={() => { window.location.href = "/market-intelligence"; }}><SearchCheck size={16} /> Check Top Sales Partners</button>
           </div>
           <div className="trust-line studio-muted-on-dark"><span><FileCheck2 size={15} /> Your ideas stay editable</span><i /><span>Designed for real authors, not prompt engineers</span></div>
           <div className="hero-studio-proof" aria-label="Studio capabilities">
@@ -59,8 +59,13 @@ export function AuthorWorkspace({ books, onOpen, onCreate, onDelete, onCreatePat
       <section className="workflow-strip studio-dark-surface">
         <div className="page-shell workflow-inner">
           <p>The complete publishing journey</p>
-          {['Idea', 'Blueprint', 'Chapters', 'Manuscript', 'Export', 'Author Success'].map((step, index) => <span key={step}><b>{index + 1}</b>{step}{index < 5 && <ArrowRight size={14} />}</span>)}
+          {['Partner Check', 'Idea', 'Blueprint', 'Chapters', 'Manuscript', 'Export', 'Author Success'].map((step, index) => <span key={step}><b>{index + 1}</b>{step}{index < 6 && <ArrowRight size={14} />}</span>)}
         </div>
+      </section>
+
+      <section className="partner-check-strip page-shell" aria-labelledby="partner-check-title">
+        <div><p className="eyebrow studio-eyebrow"><BarChart3 size={14} /> SALES-PROOF PARTNER CHECK</p><h2 id="partner-check-title">Know who sells books before you choose a publisher or marketer.</h2><p>Open the Market Intelligence leaderboard to compare verified units sold, verified revenue, confidence badges, and risk notes for publishers, marketers, launch specialists, and publicists.</p></div>
+        <button type="button" className="primary-button" onClick={() => { window.location.href = "/market-intelligence"; }}><SearchCheck size={17} /> Compare Sales Leaders</button>
       </section>
 
       {current && <AuthorOperatingSystem book={current} books={books} onNavigate={(book, action) => action === "author_success" ? onAuthorSuccess(book) : onOpen(book, action)} />}
