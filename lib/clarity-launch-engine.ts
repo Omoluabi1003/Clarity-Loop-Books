@@ -11,6 +11,17 @@ export function getLaunchContext(book: Book) {
   };
 }
 
+export function buildLaunchPageSnapshot(book: Book) {
+  const context = getLaunchContext(book);
+  return {
+    headline: `${context.title} was built for ${context.audience}`,
+    summary: context.promise,
+    primaryAction: "Get the book",
+    secondaryAction: "Read a sample",
+    authorTitle: `About ${context.author}`
+  };
+}
+
 export function generateClarityLaunchPlan(book: Book): AuthorSuccessPlan {
   const context = getLaunchContext(book);
 
