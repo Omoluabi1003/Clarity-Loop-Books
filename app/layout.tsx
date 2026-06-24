@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { PWARegistration } from "@/components/PWARegistration";
 import { I18nProvider } from "@/components/i18n/I18nProvider";
 import "./globals.css";
+import "./launch-visible.css";
 
 const siteUrl = "https://clarity-loop-books.vercel.app";
 const socialImageUrl = `${siteUrl}/clarity-loop-og.png`;
