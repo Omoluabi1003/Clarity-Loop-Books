@@ -22,6 +22,7 @@ Clarity Loop is designed for authors, coaches, pastors, consultants, speakers, c
 - An editable Book Blueprint with synopsis, Book DNA, table of contents, chapter summaries, estimated length, and reading time
 - A focused Chapter Studio with chapter navigation, writing and rewriting actions, editable manuscript content, word count, page estimate, and chapter locking
 - An Export Center with valid PDF and DOCX downloads plus publishing assets such as book descriptions, back-cover copy, author bios, keywords, and category suggestions
+- Clarity Launch Engine foundation for reader strategy, marketability review, positioning, launch assets, review workflow, and author growth pathways
 - Dedicated Book DNA, consistency, publishing pipeline, and multi-format export showcases engineered by ETL GIS Consulting LLC
 - Six starting templates: Self-Help, Christian Devotional, Memoir, Business Book, Biography, and Children’s Book
 - Browser-local beta accounts with create-account, sign-in, persistent-session, and sign-out controls; passwords are stored as PBKDF2-derived hashes rather than plaintext
@@ -103,5 +104,6 @@ python generate_covers.py
 - `lib/quality.ts` normalizes paragraph casing and reports duplicate openings, duplicate paragraphs, broken Markdown, orphan headings, empty sections, and underdeveloped chapters.
 - `lib/persistence.ts` defines the versioned saved-state contract for books and beta feedback.
 - `lib/auth.ts` defines the browser-local beta account, password-derivation, and session contract.
+- `lib/clarity-launch-engine.ts` defines the deterministic Clarity Launch Engine foundation for reader strategy and author growth planning.
 
 Browser-local persistence is appropriate for controlled single-browser beta evaluation, but it is not a substitute for authenticated server-side storage, cross-device synchronization, backups, and conflict handling. Those remain required before public monetization.
