@@ -1,0 +1,37 @@
+{
+  "extends": "GeoAware OS v1.0.0",
+  "source": "https://github.com/Omoluabi1003/GeoAware-OS",
+  "version": "1.0.0",
+  "founder": {
+    "name": "Paul Iyogun",
+    "title": "Founder and Chief Architect",
+    "organization": "ETL GIS Consulting LLC"
+  },
+  "local_product": {
+    "name": "Clarity Loop AI Book Studio",
+    "mission": "Turn an idea into a published book through a premium, non-technical SaaS writing environment that transforms a simple idea, title, or concept into a fully structured, publication-ready book."
+  },
+  "inherits": [
+    "GDL",
+    "GEC",
+    "GPC",
+    "GAIC",
+    "GDS"
+  ],
+  "design_principles": [
+    "Calm, geography-first digital experiences where technology quietly guides discovery.",
+    "Respect user context, place, culture, language, and pace before optimizing for system convenience.",
+    "Use intelligent guidance to reduce cognitive load without removing meaningful user agency.",
+    "Prefer restraint, clarity, and coherence over ornamental complexity.",
+    "Keep product behavior purposeful, accessible, and aligned with the local mission."
+  ],
+  "quality_gate": {
+    "requires": [
+      "performance",
+      "accessibility",
+      "restraint",
+      "product coherence"
+    ],
+    "behavior_change_policy": "Governance documentation must not change application behavior unless an implementation task explicitly requires it."
+  }
+}

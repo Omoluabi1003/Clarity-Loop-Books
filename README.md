@@ -29,6 +29,13 @@ Clarity Loop is designed for authors, coaches, pastors, consultants, speakers, c
 - Versioned browser-local project persistence with 15-second autosave, immediate edit saves, legacy migration, export history, and beta feedback capture
 - Deterministic API fallbacks so the complete experience works without external credentials
 
+
+## GeoAware OS Governance
+
+This repository follows GeoAware OS v1.0.0, a design and engineering philosophy founded by Paul Iyogun for calm, geography-first digital experiences where technology quietly guides discovery.
+
+Governance is recorded in `.geoaware/constitution.json` and extends the public GeoAware OS source at https://github.com/Omoluabi1003/GeoAware-OS while preserving the Clarity Loop product mission.
+
 ## Run the studio
 
 ```bash
