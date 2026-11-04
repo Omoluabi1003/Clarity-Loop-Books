@@ -1,5 +1,19 @@
 # Clarity Loop AI Book Studio
 
+## Project at a glance
+
+**Category:** AI-assisted book authoring studio  
+**Purpose:** Guide an idea through outlines, chapters, manuscript editing and export preparation  
+**Audience:** Users, engineers, reviewers and potential partners  
+**Repository:** https://github.com/Omoluabi1003/Clarity-Loop-Books
+
+**Implementation and evidence:** Publication readiness depends on author review, factual checks, rights clearance and working export services.
+
+Use the sections below for the detailed product description, engineering workflow and any available setup instructions. Roadmap statements are not guarantees of deployed functionality.
+
+---
+
+
 > **Vision 2.0:** Turn an idea into a published book.
 
 **Developed by ETL GIS Consulting LLC**
